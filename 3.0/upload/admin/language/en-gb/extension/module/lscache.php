@@ -10,6 +10,7 @@
 $_['heading_title']    = 'LiteSpeed Cache';
  
 $_['text_success']     = 'Success: You have modified "LiteSpeed Cache" extension!';
+$_['text_curl_not_support']     = ',but curl feature not supported in this web server';
 $_['text_edit']        = 'LiteSpeed Cache Settings';
 $_['text_module']        = 'Extensions';
 $_['text_action'] = 'Action';

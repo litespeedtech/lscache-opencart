@@ -129,7 +129,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         $module = $esiModules[$esiKey];
         $esiType = $module['esi_type'];
         
-        $link = $this->url->link('extension/module/lscache/renderESI', '', true);
+        $link = $this->url->link('extension/module/lscache/renderESI', '');
         $link .= '&esiRoute=' . $route;
         if(isset($module['module']) && ($module['name']!=$module['module'])){
             $link .= '&module_id=' . $module['module'];
@@ -165,6 +165,10 @@ class ControllerExtensionModuleLSCache extends Controller {
         
         $this->checkVary();
         
+        if((!$this->lscache->esiEnabled) && (!$this->emptySession())){
+            return;
+        }
+        
         if (!isset($this->lscache->setting['module_lscache_public_ttl'])) {
             $cacheTimeout = 120000;
         }
@@ -186,20 +190,22 @@ class ControllerExtensionModuleLSCache extends Controller {
             return;
         }
 
-        if(!isset($this->request->get['esiRoute'])){
-            http_response_code(403);
-            return;
-        }
-
         if(isset($this->request->get['action']) && ($this->request->get['action'] == "editCurrency")){
-            $purgeTag = 'esi_common_header,esi_currency' ;
-            $this->lscache->lscInstance->purgePrivate($purgeTag);
-            $this->log();
+            if($this->lscache->esiEnabled){
+                $purgeTag = 'esi_currency' ;
+                $this->lscache->lscInstance->purgePrivate($purgeTag);
+                $this->log();
+            }
             $this->checkVary();
             
-            if(isset($_SERVER['HTTP_REFERER'])){
+            if(isset($this->session->data['redirect']) ){
                 $content=  '<script type="text/javascript">
                                window.location = "' . $_SERVER['HTTP_REFERER'] . '"
+                            </script>';
+            } else if(isset($_SERVER['HTTP_REFERER'])){
+                
+                $content=  '<script type="text/javascript">
+                               window.location = "' . $this->session->data['redirect'] . '"
                             </script>';
             } else {
                 $content=  '<script type="text/javascript">
@@ -212,6 +218,11 @@ class ControllerExtensionModuleLSCache extends Controller {
             
         }
         
+        if(!isset($this->request->get['esiRoute'])){
+            http_response_code(403);
+            return;
+        }
+
         $esiRoute = $this->request->get['esiRoute'];
         $esiKey =  'esi_' .  str_replace('/', '_', $esiRoute);
         $module_id = "";
@@ -293,7 +304,15 @@ class ControllerExtensionModuleLSCache extends Controller {
         }
     }
     protected function checkVary() {
+        
+        if((!$this->lscache->esiEnabled) && (!$this->emptySession())){
+                $this->lscache->lscInstance->checkVary("no-cache");
+                //$this->log('vary:no-cache', 0);
+                return;
+        }
+
         $vary = array();
+        
         if ($this->customer->isLogged() && isset($this->lscache->setting['module_lscache_vary_login']) && ($this->lscache->setting['module_lscache_vary_login']=='1'))  {
             $vary[] = 'userLoggedIn';
         }
@@ -301,8 +320,9 @@ class ControllerExtensionModuleLSCache extends Controller {
         if($this->session->data['currency']!=$this->config->get('config_currency')){
             $vary[] = $this->session->data['currency'];
         }
+        
         $varyKey = implode(',', $vary);
-        //$this->log('vary:' . $varyKey, self::LOG_ERROR);
+        //$this->log('vary:' . $varyKey, 0);
         $this->lscache->lscInstance->checkVary($varyKey);
     }
 
@@ -384,23 +404,85 @@ class ControllerExtensionModuleLSCache extends Controller {
             return;
         }
 
-        if($this->lscache->lscInstance){
-            $purgeTag = 'esi_common_header,esi_cart' ;
+        if($this->lscache->esiEnabled){
+            $purgeTag = 'esi_cart' ;
             $this->lscache->lscInstance->purgePrivate($purgeTag);
             $this->log();
+        } else {
+            $this->checkVary();
         }
     }
 
-    public function editWishlist($route, &$args, &$output) {
+    public function confirmOrder($route, &$args, &$output) {
+        if(($this->lscache==null) || (!$this->lscache->cacheEnabled)){
+            return;
+        }
+        
+        $purgeTag = 'Product,Category';
+		foreach ($this->cart->getProducts() as $product) {
+            $purgeTag .= ',' . $product['product_id'];
+        }
+
+        if($this->lscache->esiEnabled){
+            $purgeTag = ',esi_cart' ;
+            $this->lscache->lscInstance->purgePrivate($purgeTag);
+            $this->log();
+        } else {
+            $this->lscache->lscInstance->purgePrivate($purgeTag);
+            $this->log();
+            $this->checkVary();
+        }
+    }
+
+    public function getWishlist($route, &$args, &$output) {
         if(($this->lscache==null) || (!$this->lscache->cacheEnabled)){
             return;
         }
         
         if($this->lscache->lscInstance){
-            $purgeTag = 'esi_common_header,esi_wishlist' ;
+            $output .='<script type="text/javascript">$(document).ready(function() { wishlist.add(-1);})</script>';
+        }
+        
+    }
+
+    public function checkWishlist($route, &$args) {
+        if(($this->lscache==null) || (!$this->lscache->cacheEnabled)){
+            return;
+        }
+        
+        if($this->lscache->esiEnabled && isset($this->request->post['product_id']) && ($this->request->post['product_id']==-1)){
+			if ($this->customer->isLogged()) {
+				$this->load->model('account/wishlist');
+                $total = $this->model_account_wishlist->getTotalWishlist();
+            } else {
+                $total = isset($this->session->data['wishlist']) ? count($this->session->data['wishlist']) : 0;
+            }
+    		$this->load->language('account/wishlist');
+            $json = array();
+			$json['total'] = sprintf($this->language->get('text_wishlist'), $total);
+            
+    		$this->response->setOutput(json_encode($json));
+            
+            return json_encode($json);
+        }
+        
+    }
+
+
+    
+    public function editWishlist($route, &$args, &$output) {
+        if(($this->lscache==null) || (!$this->lscache->cacheEnabled)){
+            return;
+        }
+        
+        if($this->lscache->esiEnabled){
+            $purgeTag = 'esi_wishlist' ;
             $this->lscache->lscInstance->purgePrivate($purgeTag);
             $this->log();
+        } else {
+            $this->checkVary();
         }
+        
     }
 
 
@@ -408,8 +490,9 @@ class ControllerExtensionModuleLSCache extends Controller {
         if (($this->lscache==null) || (!$this->lscache->cacheEnabled)) {
             return;
         }
-
-        $this->request->post['redirect'] .= "&action=editCurrency";
+        
+        $this->session->data['redirect'] = $this->request->post['redirect']  ; 
+        $this->request->post['redirect']  = $this->url->link('extension/module/lscache/renderESI', 'action=editCurrency');
         
     }
 
@@ -557,7 +640,7 @@ class ControllerExtensionModuleLSCache extends Controller {
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
             curl_setopt($ch, CURLOPT_MAXREDIRS, 1);
             curl_setopt($ch, CURLOPT_USERAGENT, 'lscache_runner');
-//            $this->log('crawl:'.$url, self::LOG_ERROR);
+//            $this->log('crawl:'.$url, 0);
             $buffer = curl_exec($ch);
             $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
@@ -591,5 +674,11 @@ class ControllerExtensionModuleLSCache extends Controller {
         $diff = ((int) $e_sec - (int) $s_sec) * 1000000 + ((float) $e_usec - (float) $s_usec) * 1000000;
         return $diff;
     }
+    
+    protected function emptySession(){
+        $amount = isset($this->session->data['wishlist']) ? count($this->session->data['wishlist']) : 0  + $this->cart->countProducts() + (isset($this->session->data['vouchers']) ? count($this->session->data['vouchers']) : 0) ;
+        return $amount >0 ? false : true;
+    }   
+    
     
 }

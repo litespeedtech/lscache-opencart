@@ -16,6 +16,10 @@ class ControllerExtensionModuleLSCache extends Controller {
     public function index() {
 
         $data = $this->load->language('extension/module/lscache');
+        if(!$this->isCurl()){
+            $data["button_recacheAll"] .= $data["text_curl_not_support"];
+        }
+        
         $currentLink = $this->url->link('extension/module/lscache', 'user_token=' . $this->session->data['user_token'], true);
         $this->session->data['previouseURL'] = $currentLink;
         $parentLink = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'].'&type=module', true);
@@ -42,8 +46,8 @@ class ControllerExtensionModuleLSCache extends Controller {
         }
         else if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
             $this->model_extension_module_lscache->editSetting('module_lscache', $this->request->post);
-            $data['error_warning'] = $this->session->data['error'] ;
-            if($data['error_warning']){
+            if(isset($this->session->data['error'])){
+                $data['error_warning'] = $this->session->data['error'] ;
                 $this->session->data['error']="";
             } else {
                 $this->session->data['success'] = $this->language->get('text_success');
@@ -122,9 +126,9 @@ class ControllerExtensionModuleLSCache extends Controller {
         $data['tabtool'] = new Tool('active', 'general');
         $data['selectEnable'] = new Tool('selected', '1');
         $data['selectDisable'] = new Tool('selected', '0');
+        $data['selectDefault'] = new Tool('selected', '');
         $data['checkEnable'] = new Tool('checked', '1');
         $data['checkDisable'] = new Tool('checked', '0');
-        $data['checkValue'] = new Tool();
         
         if(!empty($data['error_warning']) ){
         } else if (isset($this->error['warning'])) {
@@ -152,7 +156,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         $data['purgeAll'] = $currentLink . '&action=purgeAll';
         $data['purgePage'] = $currentLink . '&action=purgePage';
         $data['purgeESI'] = $currentLink . '&action=purgeESI';
-        $data['recacheAll'] = $recacheLink ;
+        $data['recacheAll'] = $this->isCurl()? $recacheLink : '#';
         $data['addPage'] = $currentLink . '&tab=pages&action=addPage';
         $data['deletePage'] = $currentLink . '&tab=pages&action=deletePage';
         $data['addESIModule'] = $currentLink . '&tab=modules&action=addESIModule';
@@ -209,8 +213,17 @@ class ControllerExtensionModuleLSCache extends Controller {
         $this->model_setting_event->addEvent('lscache_information_edit', 'admin/model/catalog/information/editInformation/after', 'extension/module/lscache/editInformation');
         $this->model_setting_event->addEvent('lscache_information_delete', 'admin/model/catalog/information/deleteInformation/after', 'extension/module/lscache/editInformation');
 
-        $this->model_setting_event->addEvent('lscache_cart_edit', 'catalog/controller/checkout/cart/add/after', 'extension/module/lscache/editCart');
+        $this->model_setting_event->addEvent('lscache_checkout_confirm', 'catalog/controller/checkout/confirm/after', 'extension/module/lscache/confirmOrder');
+        $this->model_setting_event->addEvent('lscache_checkout_success', 'catalog/controller/checkout/success/after', 'extension/module/lscache/confirmOrder');
+
+        $this->model_setting_event->addEvent('lscache_cart_add', 'catalog/controller/checkout/cart/add/after', 'extension/module/lscache/editCart');
+        $this->model_setting_event->addEvent('lscache_cart_edit', 'catalog/controller/checkout/cart/edit/after', 'extension/module/lscache/editCart');
+        $this->model_setting_event->addEvent('lscache_cart_remove', 'catalog/controller/checkout/cart/remove/after', 'extension/module/lscache/editCart');
+        $this->model_setting_event->addEvent('lscache_wishlist_check', 'catalog/controller/account/wishlist/add/before', 'extension/module/lscache/checkWishlist');
+        $this->model_setting_event->addEvent('lscache_wishlist_get', 'catalog/controller/common/header/after', 'extension/module/lscache/getWishlist');
         $this->model_setting_event->addEvent('lscache_wishlist_edit', 'catalog/controller/account/wishlist/add/after', 'extension/module/lscache/editWishlist');
+        $this->model_setting_event->addEvent('lscache_wishlist_display', 'catalog/controller/account/wishlist/after', 'extension/module/lscache/editWishlist');
+        
         $this->model_setting_event->addEvent('lscache_user_login', 'catalog/controller/account/login/validate/after', 'extension/module/lscache/onUserAfterLogin');
         $this->model_setting_event->addEvent('lscache_user_logout', 'catalog/model/account/customer/deleteLoginAttempts/after', 'extension/module/lscache/onUserAfterLogout');
         $this->model_setting_event->addEvent('lscache_currency_change', 'catalog/controller/common/currency/currency/before', 'extension/module/lscache/editCurrency');
@@ -221,7 +234,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         $lscInstance = $this->lscacheInit();
         if($lscInstance){
             $lscInstance->purgeAllPublic();
-            $this->log($lscInstance->getLogBuffer(), self::LOG_ERROR);
+            //$this->log($lscInstance->getLogBuffer(), 0);
         }
 	}
     
@@ -240,19 +253,26 @@ class ControllerExtensionModuleLSCache extends Controller {
 		$this->model_setting_event->deleteEventByCode('lscache_category_get');
 		$this->model_setting_event->deleteEventByCode('lscache_category_edit');
 		$this->model_setting_event->deleteEventByCode('lscache_category_delete');
-		$this->model_setting_event->deleteEventByCode('lscache_manufacture_list');
-		$this->model_setting_event->deleteEventByCode('lscache_manufacture_add');
-		$this->model_setting_event->deleteEventByCode('lscache_manufacture_get');
-		$this->model_setting_event->deleteEventByCode('lscache_manufacture_edit');
-		$this->model_setting_event->deleteEventByCode('lscache_manufacture_delete');
+		$this->model_setting_event->deleteEventByCode('lscache_manufacturer_list');
+		$this->model_setting_event->deleteEventByCode('lscache_manufacturer_add');
+		$this->model_setting_event->deleteEventByCode('lscache_manufacturer_get');
+		$this->model_setting_event->deleteEventByCode('lscache_manufacturer_edit');
+		$this->model_setting_event->deleteEventByCode('lscache_manufacturer_delete');
 		$this->model_setting_event->deleteEventByCode('lscache_information_list');
 		$this->model_setting_event->deleteEventByCode('lscache_information_add');
 		$this->model_setting_event->deleteEventByCode('lscache_information_get');
 		$this->model_setting_event->deleteEventByCode('lscache_information_edit');
 		$this->model_setting_event->deleteEventByCode('lscache_information_delete');
 
+        $this->model_setting_event->deleteEventByCode('lscache_checkout_confirm');
+        $this->model_setting_event->deleteEventByCode('lscache_checkout_success');
+        $this->model_setting_event->deleteEventByCode('lscache_cart_add');
         $this->model_setting_event->deleteEventByCode('lscache_cart_edit');
-		$this->model_setting_event->deleteEventByCode('lscache_whishlist_edit');
+        $this->model_setting_event->deleteEventByCode('lscache_cart_remove');
+		$this->model_setting_event->deleteEventByCode('lscache_wishlist_get');
+		$this->model_setting_event->deleteEventByCode('lscache_wishlist_display');
+		$this->model_setting_event->deleteEventByCode('lscache_wishlist_edit');
+		$this->model_setting_event->deleteEventByCode('lscache_wishlist_check');
 		$this->model_setting_event->deleteEventByCode('lscache_user_login');
 		$this->model_setting_event->deleteEventByCode('lscache_user_logout');
 		$this->model_setting_event->deleteEventByCode('lscache_currency_change');
@@ -261,7 +281,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         $lscInstance = $this->lscacheInit();
         if($lscInstance){
             $lscInstance->purgeAllPublic();
-            $this->log($lscInstance->getLogBuffer(), self::LOG_ERROR);
+            $this->log($lscInstance->getLogBuffer(), 0);
         }
         $this->model_extension_module_lscache->uninstallLSCache();
 	}
@@ -505,7 +525,10 @@ class ControllerExtensionModuleLSCache extends Controller {
 		$this->log->write($content);
         
     }
-
+    
+    protected function isCurl(){
+        return function_exists('curl_version');
+    }
     
     
 }
@@ -522,7 +545,7 @@ final class Tool {
     
     public function check($value, $compare = "1", $attribute="") {
         
-        if(empty($value)){
+        if($value==""){
             $value = $this->default;
         }
 

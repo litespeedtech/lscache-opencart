@@ -67,7 +67,7 @@ class ModelExtensionModuleLSCache extends Model {
                 if(array_key_exists($key, $settings) ) {
                     $this->session->data['error'] = $this->language->get("text_duplicate_route");
                     continue;
-                }                
+                }
             }
             
             $this->db->query("INSERT INTO " . DB_PREFIX . "setting SET store_id = '" . (int)$store_id . "', `code` = '" . $this->db->escape($code) . "', `key` = '" . $this->db->escape($key) . "', `value` = '" . $this->db->escape(json_encode($value, true)) . "', serialized = '1'");
@@ -227,15 +227,16 @@ class ModelExtensionModuleLSCache extends Model {
     
     
 	public function  installLSCache() {
-        $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'page_common_home', '{\"name\":\"Home Page\",\"route\":\"common\\/home\",\"cacheLogout\":\"1\",\"cacheLogin\":\"1\", \"default\":\"1\"}', '1')" ) ;
-        $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'page_product_category', '{\"name\":\"Produc Category\",\"route\":\"product\\/category\",\"cacheLogout\":\"1\",\"cacheLogin\":\"1\", \"default\":\"1\" }', '1')" ) ;
-        $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'page_product_product', '{\"name\":\"Product Detail\",\"route\":\"product\\/product\",\"cacheLogout\":\"1\",\"cacheLogin\":\"1\", \"default\":\"1\"}', '1')" ) ;
+        $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'page_common_home', '{\"name\":\"Home Page\",\"route\":\"common\\/home\",\"cacheLogout\":\"1\",\"cacheLogin\":\"0\", \"default\":\"1\"}', '1')" ) ;
+        $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'page_product_category', '{\"name\":\"Produc Category\",\"route\":\"product\\/category\",\"cacheLogout\":\"1\",\"cacheLogin\":\"0\", \"default\":\"1\" }', '1')" ) ;
+        $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'page_product_product', '{\"name\":\"Product Detail\",\"route\":\"product\\/product\",\"cacheLogout\":\"1\",\"cacheLogin\":\"0\", \"default\":\"1\"}', '1')" ) ;
         $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'page_catalog_information', '{\"name\":\"Information\",\"route\":\"catalog\\/information\",\"cacheLogout\":\"1\",\"cacheLogin\":\"1\", \"default\":\"1\"}', '1')" ) ;
         $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'page_information_contact', '{\"name\":\"Contact Us\",\"route\":\"information\\/contact\",\"cacheLogout\":\"1\",\"cacheLogin\":\"1\", \"default\":\"1\"}', '1')" ) ;
         $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'page_information_sitemap', '{\"name\":\"Site Map\",\"route\":\"information\\/sitemap\",\"cacheLogout\":\"1\",\"cacheLogin\":\"1\", \"default\":\"1\" }', '1')" ) ;
         $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'page_product_manufacturer', '{\"name\":\"Brands\",\"route\":\"product\\/manufacturer\",\"cacheLogout\":\"1\",\"cacheLogin\":\"1\", \"default\":\"1\"}', '1')" ) ;
-        $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'esi_common_header', '{\"name\":\"header\",\"route\":\"common\\/header\",\"esi_type\":\"2\",\"esi_ttl\":\"1800\",\"esi_tag\":\"\", \"default\":\"1\"}', '1')") ;
+        $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'esi_common_cart', '{\"name\":\"cart\",\"route\":\"common\\/cart\",\"esi_type\":\"2\",\"esi_ttl\":\"1800\",\"esi_tag\":\"esi_cart\", \"default\":\"1\"}', '1')") ;
         $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'esi_common_footer', '{\"name\":\"footer\",\"route\":\"common\\/footer\",\"esi_type\":\"3\",\"esi_ttl\":\"360000\",\"esi_tag\":\"\", \"default\":\"1\"}', '1')") ;
+        $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'esi_common_menu', '{\"name\":\"menu\",\"route\":\"common\\/menu\",\"esi_type\":\"3\",\"esi_ttl\":\"360000\",\"esi_tag\":\"\", \"default\":\"1\"}', '1')") ;
         
         $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'module_lscache_status', '1', '0')") ;
         $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'module_lscache_public_ttl', '1200000', '0')") ;
