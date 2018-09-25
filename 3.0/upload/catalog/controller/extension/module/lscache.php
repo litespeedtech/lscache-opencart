@@ -190,12 +190,13 @@ class ControllerExtensionModuleLSCache extends Controller {
             return;
         }
 
-        if(isset($this->request->get['action']) && ($this->request->get['action'] == "editCurrency")){
-            if($this->lscache->esiEnabled){
-                $purgeTag = 'esi_currency' ;
+        if(isset($this->request->get['action'])) {
+            if(($this->lscache->esiEnabled) && (substr($this->request->get['action'],0,4)=='esi_') ){
+                $purgeTag = $this->request->get['action'];
                 $this->lscache->lscInstance->purgePrivate($purgeTag);
                 $this->log();
             }
+            
             $this->checkVary();
             
             if(isset($this->session->data['redirect']) ){
@@ -305,12 +306,6 @@ class ControllerExtensionModuleLSCache extends Controller {
     }
     protected function checkVary() {
         
-        if((!$this->lscache->esiEnabled) && (!$this->emptySession())){
-                $this->lscache->lscInstance->checkVary("no-cache");
-                //$this->log('vary:no-cache', 0);
-                return;
-        }
-
         $vary = array();
         
         if ($this->customer->isLogged() && isset($this->lscache->setting['module_lscache_vary_login']) && ($this->lscache->setting['module_lscache_vary_login']=='1'))  {
@@ -321,9 +316,13 @@ class ControllerExtensionModuleLSCache extends Controller {
             $vary[] = $this->session->data['currency'];
         }
         
+        if($this->session->data['language']!=$this->config->get('config_language')){
+            $vary[] = $this->session->data['language'];
+        }
+        
         $varyKey = implode(',', $vary);
         //$this->log('vary:' . $varyKey, 0);
-        $this->lscache->lscInstance->checkVary($varyKey);
+        $this->lscache->lscInstance->checkVary($varyKey, $this->request->server['HTTP_HOST']);
     }
 
 
@@ -420,11 +419,11 @@ class ControllerExtensionModuleLSCache extends Controller {
         
         $purgeTag = 'Product,Category';
 		foreach ($this->cart->getProducts() as $product) {
-            $purgeTag .= ',' . $product['product_id'];
+            $purgeTag .= ',P_' . $product['product_id'];
         }
 
         if($this->lscache->esiEnabled){
-            $purgeTag = ',esi_cart' ;
+            $purgeTag .= ',esi_cart' ;
             $this->lscache->lscInstance->purgePrivate($purgeTag);
             $this->log();
         } else {
@@ -434,23 +433,24 @@ class ControllerExtensionModuleLSCache extends Controller {
         }
     }
 
-    public function getWishlist($route, &$args, &$output) {
+    public function addAjax($route, &$args, &$output) {
         if(($this->lscache==null) || (!$this->lscache->cacheEnabled)){
             return;
         }
         
-        if($this->lscache->lscInstance){
-            $output .='<script type="text/javascript">$(document).ready(function() { wishlist.add(-1);})</script>';
+        if(($this->lscache->lscInstance) && (!$this->lscache->esiEnabled)){
+            $output .='<script type="text/javascript">$(document).ready(function() { wishlist.add("-1"); cart.remove("-1");})</script>';
         }
         
     }
 
+    
     public function checkWishlist($route, &$args) {
         if(($this->lscache==null) || (!$this->lscache->cacheEnabled)){
             return;
         }
         
-        if($this->lscache->esiEnabled && isset($this->request->post['product_id']) && ($this->request->post['product_id']==-1)){
+        if((!$this->lscache->esiEnabled) && isset($this->request->post['product_id']) && ($this->request->post['product_id']=="-1")){
 			if ($this->customer->isLogged()) {
 				$this->load->model('account/wishlist');
                 $total = $this->model_account_wishlist->getTotalWishlist();
@@ -492,9 +492,20 @@ class ControllerExtensionModuleLSCache extends Controller {
         }
         
         $this->session->data['redirect'] = $this->request->post['redirect']  ; 
-        $this->request->post['redirect']  = $this->url->link('extension/module/lscache/renderESI', 'action=editCurrency');
-        
+        $this->request->post['redirect']  = $this->url->link('extension/module/lscache/renderESI', 'action=edit_currency');
     }
+    
+
+    public function editLanguage($route, &$args) {
+        if (($this->lscache==null) || (!$this->lscache->cacheEnabled)) {
+            return;
+        }
+        
+        $this->session->data['redirect'] = $this->request->post['redirect']  ; 
+        $this->request->post['redirect']  = $this->url->link('extension/module/lscache/renderESI', 'action=edit_language');
+    }
+    
+    
 
     public function log($content = null, $logLevel = self::LOG_INFO) {
         if($this->lscache==null){

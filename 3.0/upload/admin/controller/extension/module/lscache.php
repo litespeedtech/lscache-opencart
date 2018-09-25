@@ -40,11 +40,12 @@ class ControllerExtensionModuleLSCache extends Controller {
         }
 
         $this->load->model('extension/module/lscache');
+        $oldSetting = $this->model_extension_module_lscache->getItems();
         
         if (!$this->validate()){
-    		$this->log->write('Invalid Access');
+    		$this->log('Invalid Access', self::LOG_ERROR);
         }
-        else if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
+        else if (($this->request->server['REQUEST_METHOD'] == 'POST')) {
             $this->model_extension_module_lscache->editSetting('module_lscache', $this->request->post);
             if(isset($this->session->data['error'])){
                 $data['error_warning'] = $this->session->data['error'] ;
@@ -58,6 +59,14 @@ class ControllerExtensionModuleLSCache extends Controller {
                 $data["tab"] = $this->session->data["previouseTab"];
                 unset($this->session->data["previouseTab"]);
             }
+            
+            if(($oldSetting["module_lscache_status"]!= $this->request->post["module_lscache_status"]) || ($oldSetting["module_lscache_esi"]!= $this->request->post["module_lscache_esi"])){
+                if($lscInstance){
+                    $lscInstance->purgeAllPublic();
+                    $data['success'] .=  '<br><i class="fa fa-check-circle"></i> ' .  $this->language->get('text_purgeSuccess');
+                }
+            }
+            
         }
         else if( ($action == 'purgeAll') && $lscInstance){
             $data['success'] = $this->language->get('text_purgeSuccess');
@@ -216,17 +225,19 @@ class ControllerExtensionModuleLSCache extends Controller {
         $this->model_setting_event->addEvent('lscache_checkout_confirm', 'catalog/controller/checkout/confirm/after', 'extension/module/lscache/confirmOrder');
         $this->model_setting_event->addEvent('lscache_checkout_success', 'catalog/controller/checkout/success/after', 'extension/module/lscache/confirmOrder');
 
+        $this->model_setting_event->addEvent('lscache_add_ajax', 'catalog/controller/common/header/after', 'extension/module/lscache/addAjax');
         $this->model_setting_event->addEvent('lscache_cart_add', 'catalog/controller/checkout/cart/add/after', 'extension/module/lscache/editCart');
         $this->model_setting_event->addEvent('lscache_cart_edit', 'catalog/controller/checkout/cart/edit/after', 'extension/module/lscache/editCart');
         $this->model_setting_event->addEvent('lscache_cart_remove', 'catalog/controller/checkout/cart/remove/after', 'extension/module/lscache/editCart');
         $this->model_setting_event->addEvent('lscache_wishlist_check', 'catalog/controller/account/wishlist/add/before', 'extension/module/lscache/checkWishlist');
-        $this->model_setting_event->addEvent('lscache_wishlist_get', 'catalog/controller/common/header/after', 'extension/module/lscache/getWishlist');
         $this->model_setting_event->addEvent('lscache_wishlist_edit', 'catalog/controller/account/wishlist/add/after', 'extension/module/lscache/editWishlist');
         $this->model_setting_event->addEvent('lscache_wishlist_display', 'catalog/controller/account/wishlist/after', 'extension/module/lscache/editWishlist');
         
+        $this->model_setting_event->addEvent('lscache_user_forgotten', 'catalog/controller/account/forgotten/validate/after', 'extension/module/lscache/onUserAfterLogin');
         $this->model_setting_event->addEvent('lscache_user_login', 'catalog/controller/account/login/validate/after', 'extension/module/lscache/onUserAfterLogin');
         $this->model_setting_event->addEvent('lscache_user_logout', 'catalog/model/account/customer/deleteLoginAttempts/after', 'extension/module/lscache/onUserAfterLogout');
         $this->model_setting_event->addEvent('lscache_currency_change', 'catalog/controller/common/currency/currency/before', 'extension/module/lscache/editCurrency');
+        $this->model_setting_event->addEvent('lscache_language_change', 'catalog/controller/common/language/language/before', 'extension/module/lscache/editLanguage');
         
         $this->model_extension_module_lscache->installLSCache();
         $this->initHtaccess();
@@ -269,13 +280,15 @@ class ControllerExtensionModuleLSCache extends Controller {
         $this->model_setting_event->deleteEventByCode('lscache_cart_add');
         $this->model_setting_event->deleteEventByCode('lscache_cart_edit');
         $this->model_setting_event->deleteEventByCode('lscache_cart_remove');
-		$this->model_setting_event->deleteEventByCode('lscache_wishlist_get');
+		$this->model_setting_event->deleteEventByCode('lscache_add_ajax');
 		$this->model_setting_event->deleteEventByCode('lscache_wishlist_display');
 		$this->model_setting_event->deleteEventByCode('lscache_wishlist_edit');
 		$this->model_setting_event->deleteEventByCode('lscache_wishlist_check');
+		$this->model_setting_event->deleteEventByCode('lscache_user_forgotten');
 		$this->model_setting_event->deleteEventByCode('lscache_user_login');
 		$this->model_setting_event->deleteEventByCode('lscache_user_logout');
 		$this->model_setting_event->deleteEventByCode('lscache_currency_change');
+		$this->model_setting_event->deleteEventByCode('lscache_language_change');
                 
         $this->clearHtaccess();
         $lscInstance = $this->lscacheInit();
