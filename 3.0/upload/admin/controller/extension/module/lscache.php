@@ -20,11 +20,11 @@ class ControllerExtensionModuleLSCache extends Controller {
             $data["button_recacheAll"] .= $data["text_curl_not_support"];
         }
         
-        $currentLink = $this->url->link('extension/module/lscache', 'user_token=' . $this->session->data['user_token'], true);
+        $currentLink = $this->url->link('extension/module/lscache', 'user_token=' . $this->session->data['user_token']);
         $this->session->data['previouseURL'] = $currentLink;
-        $parentLink = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'].'&type=module', true);
+        $parentLink = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'].'&type=module');
         $siteUrl = new Url(HTTP_CATALOG, HTTPS_CATALOG);
-        $recacheLink = $siteUrl->link('extension/module/lscache/recache', 'user_token=' . $this->session->data['user_token'], true);
+        $recacheLink = $siteUrl->link('extension/module/lscache/recache', 'user_token=' . $this->session->data['user_token']);
         $lscInstance = $this->lscacheInit();
         
         $action = 'index' ;
@@ -73,6 +73,13 @@ class ControllerExtensionModuleLSCache extends Controller {
     		$lscInstance->purgeAllPublic();
             $this->log($lscInstance->getLogBuffer());
             $data['success'] = $this->language->get('text_purgeSuccess');
+        }
+        else if( ($action == 'purgeAllButton') && $lscInstance){
+    		$lscInstance->purgeAllPublic();
+            $this->log($lscInstance->getLogBuffer());
+            if(isset($_SERVER['HTTP_REFERER'])){
+                $this->response->redirect($_SERVER['HTTP_REFERER']);
+            }
         }
         else if(($action == 'deletePage') && isset($this->request->get['key'])) {
             $key = $this->request->get['key'];
@@ -192,12 +199,20 @@ class ControllerExtensionModuleLSCache extends Controller {
         return !$this->error;
     }
     
+
+    public function purgeAllButton($route, &$args, &$output){
+        $this->load->language('extension/module/lscache');
+        $button = '<li><a href="' . $this->url->link('extension/module/lscache', 'user_token=' . $this->session->data['user_token']) . '&action=purgeAllButton'  . '" data-toggle="tooltip" title="" class="btn" data-original-title="'. $this->language->get('button_purgeAll') .'"><i class="fa fa-trash"></i><span class="hidden-xs hidden-sm hidden-md"> Purge All LiteSpeed Cache</span></a></li>';
+        $search = '<ul class="nav navbar-nav navbar-right">';
+        $output = str_replace($search, $search.$button, $output);
+    }
     
 	public function install() {
 		$this->load->model('setting/event');
 		$this->load->model('extension/module/lscache');
         $this->model_setting_event->addEvent('lscache_init', 'catalog/controller/*/before', 'extension/module/lscache/onAfterInitialize');
 
+        $this->model_setting_event->addEvent('lscache_button_purgeall', 'admin/controller/common/header/after', 'extension/module/lscache/purgeAllButton');
         $this->model_setting_event->addEvent('lscache_product_list', 'catalog/model/catalog/product/getProducts/after', 'extension/module/lscache/getProducts');
         $this->model_setting_event->addEvent('lscache_product_get', 'catalog/model/catalog/product/getProduct/after', 'extension/module/lscache/getProduct');
         $this->model_setting_event->addEvent('lscache_product_add', 'admin/model/catalog/product/addProduct/after', 'extension/module/lscache/addProduct');
@@ -254,6 +269,7 @@ class ControllerExtensionModuleLSCache extends Controller {
 		$this->load->model('setting/event');
 		$this->load->model('extension/module/lscache');
 		$this->model_setting_event->deleteEventByCode('lscache_init');
+		$this->model_setting_event->deleteEventByCode('lscache_button_purgeall');
 		$this->model_setting_event->deleteEventByCode('lscache_product_list');
 		$this->model_setting_event->deleteEventByCode('lscache_product_add');
 		$this->model_setting_event->deleteEventByCode('lscache_product_get');
@@ -449,7 +465,7 @@ class ControllerExtensionModuleLSCache extends Controller {
 
         // Checks if caching is allowed via server variable
         if (!empty($_SERVER['X-LSCACHE']) || LITESPEED_SERVER_TYPE === 'LITESPEED_SERVER_ADC' || defined('LITESPEED_CLI')) {
-            !defined('LITESPEED_ALLOWED') && define('LITESPEED_ALLOWED', true);
+            !defined('LITESPEED_ALLOWED') && define('LITESPEED_ALLOWED',true);
             include_once(DIR_SYSTEM . 'library/lscache/lscachebase.php');
             include_once(DIR_SYSTEM . 'library/lscache/lscachecore.php');
             $lscInstance = new LiteSpeedCacheCore();

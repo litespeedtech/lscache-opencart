@@ -75,6 +75,13 @@ class ControllerExtensionModuleLSCache extends Controller {
             $this->log($lscInstance->getLogBuffer());
             $data['success'] = $this->language->get('text_purgeSuccess');
         }
+        else if( ($action == 'purgeAllButton') && $lscInstance){
+    		$lscInstance->purgeAllPublic();
+            $this->log($lscInstance->getLogBuffer());
+            if(isset($_SERVER['HTTP_REFERER'])){
+                $this->response->redirect($_SERVER['HTTP_REFERER']);
+            }
+        }
         else if(($action == 'deletePage') && isset($this->request->get['key'])) {
             $key = $this->request->get['key'];
             $this->model_extension_module_lscache->deleteSettingItem('module_lscache', $key );
@@ -193,12 +200,20 @@ class ControllerExtensionModuleLSCache extends Controller {
         return !$this->error;
     }
     
+    public function purgeAllButton($route, &$args, &$output){
+        $this->load->language('extension/module/lscache');
+        $button = '<li><a href="' . $this->url->link('extension/module/lscache', 'token=' . $this->session->data['token']) . '&action=purgeAllButton'  . '" data-toggle="tooltip" title="" class="btn" data-original-title="'. $this->language->get('button_purgeAll') .'"><i class="fa fa-trash"></i><span class="hidden-xs hidden-sm hidden-md"> Purge All LiteSpeed Cache</span></a></li>';
+        $search = '<ul class="nav pull-right">';
+        $output = str_replace($search, $search.$button, $output);
+    }
+    
     
 	public function install() {
 		$this->load->model('extension/event');
 		$this->load->model('extension/module/lscache');
         $this->model_extension_event->addEvent('lscache_init', 'catalog/controller/*/before', 'extension/module/lscache/onAfterInitialize');
 
+        $this->model_extension_event->addEvent('lscache_button_purgeall', 'admin/controller/common/header/after', 'extension/module/lscache/purgeAllButton');
         $this->model_extension_event->addEvent('lscache_product_list', 'catalog/model/catalog/product/getProducts/after', 'extension/module/lscache/getProducts');
         $this->model_extension_event->addEvent('lscache_product_get', 'catalog/model/catalog/product/getProduct/after', 'extension/module/lscache/getProduct');
         $this->model_extension_event->addEvent('lscache_product_add', 'admin/model/catalog/product/addProduct/after', 'extension/module/lscache/addProduct');
@@ -255,6 +270,7 @@ class ControllerExtensionModuleLSCache extends Controller {
 		$this->load->model('extension/event');
 		$this->load->model('extension/module/lscache');
 		$this->model_extension_event->deleteEvent('lscache_init');
+		$this->model_extension_event->deleteEvent('lscache_button_purgeall');
 		$this->model_extension_event->deleteEvent('lscache_product_list');
 		$this->model_extension_event->deleteEvent('lscache_product_add');
 		$this->model_extension_event->deleteEvent('lscache_product_get');
