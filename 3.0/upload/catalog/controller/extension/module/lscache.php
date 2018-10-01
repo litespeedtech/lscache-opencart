@@ -438,8 +438,10 @@ class ControllerExtensionModuleLSCache extends Controller {
             return;
         }
         
-        if(($this->lscache->lscInstance) && (!$this->lscache->esiEnabled)){
+        if(!$this->lscache->esiEnabled){
             $output .='<script type="text/javascript">$(document).ready(function() { wishlist.add("-1"); cart.remove("-1");})</script>';
+        } else {
+            $output .='<script type="text/javascript">$(document).ready(function() { wishlist.add("-1"); })</script>';
         }
         
     }
@@ -450,7 +452,7 @@ class ControllerExtensionModuleLSCache extends Controller {
             return;
         }
         
-        if((!$this->lscache->esiEnabled) && isset($this->request->post['product_id']) && ($this->request->post['product_id']=="-1")){
+        if(isset($this->request->post['product_id']) && ($this->request->post['product_id']=="-1")){
 			if ($this->customer->isLogged()) {
 				$this->load->model('account/wishlist');
                 $total = $this->model_account_wishlist->getTotalWishlist();
@@ -467,8 +469,6 @@ class ControllerExtensionModuleLSCache extends Controller {
         }
         
     }
-
-
     
     public function editWishlist($route, &$args, &$output) {
         if(($this->lscache==null) || (!$this->lscache->cacheEnabled)){

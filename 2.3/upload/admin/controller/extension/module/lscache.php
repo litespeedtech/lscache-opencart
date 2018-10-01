@@ -201,10 +201,12 @@ class ControllerExtensionModuleLSCache extends Controller {
     }
     
     public function purgeAllButton($route, &$args, &$output){
-        $this->load->language('extension/module/lscache');
-        $button = '<li><a href="' . $this->url->link('extension/module/lscache', 'token=' . $this->session->data['token']) . '&action=purgeAllButton'  . '" data-toggle="tooltip" title="" class="btn" data-original-title="'. $this->language->get('button_purgeAll') .'"><i class="fa fa-trash"></i><span class="hidden-xs hidden-sm hidden-md"> Purge All LiteSpeed Cache</span></a></li>';
-        $search = '<ul class="nav pull-right">';
-        $output = str_replace($search, $search.$button, $output);
+        if ($this->user && $this->user->hasPermission('modify', 'extension/module/lscache')) {
+            $this->load->language('extension/module/lscache');
+            $button = '<li><a href="' . $this->url->link('extension/module/lscache', 'token=' . $this->session->data['token']) . '&action=purgeAllButton'  . '" data-toggle="tooltip" title="" class="btn" data-original-title="'. $this->language->get('button_purgeAll') .'"><i class="fa fa-trash"></i><span class="hidden-xs hidden-sm hidden-md"> Purge All LiteSpeed Cache</span></a></li>';
+            $search = '<ul class="nav pull-right">';
+            $output = str_replace($search, $search.$button, $output);
+        }
     }
     
     
