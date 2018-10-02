@@ -23,5 +23,5 @@ Installing
 -------------
 In github *package* folder you can download specfic version of LiteSpeed Cache extension package, or you can run *buildPackage.sh* to generate latest package from the latest souce code in github.
 
-See https://www.litespeedtech.com/support/wiki/doku.php/litespeed_wiki:cache:lscopencart for more information.
+See https://www.litespeedtech.com/support/wiki/doku.php/litespeed_wiki:cache:lscoc for more information.
 
