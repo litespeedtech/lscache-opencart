@@ -15,7 +15,7 @@ See https://www.litespeedtech.com/products/cache-plugins for more information.
 ## Prerequisites
 This version of LiteSpeed Cache requires OpenCart 2.3 or later and either LiteSpeed LSWS Server 5.2.3 or later, or OpenLiteSpeed 1.4 or later.
 
-##Installing
+## Installing
 Download a specific version of the LiteSpeed Cache extension package from the GitHub **package** folder, or run `buildPackage.sh` to generate the latest package from the latest souce code in GitHub.
 
 See https://www.litespeedtech.com/support/wiki/doku.php/litespeed_wiki:cache:lscoc for more information.
