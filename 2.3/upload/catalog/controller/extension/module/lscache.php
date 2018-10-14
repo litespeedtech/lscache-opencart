@@ -434,14 +434,14 @@ class ControllerExtensionModuleLSCache extends Controller {
     }
 
     public function addAjax($route, &$args, &$output) {
-        if(($this->lscache==null) || (!$this->lscache->cacheEnabled)){
+        if(($this->lscache==null) || (!$this->lscache->pageCachable)){
             return;
         }
         
         if(!$this->lscache->esiEnabled){
-            $output .='<script type="text/javascript">$(document).ready(function() { wishlist.add("-1"); cart.remove("-1");})</script>';
-        } else {
             $output .='<script type="text/javascript">$(document).ready(function() { wishlist.add("-1"); })</script>';
+        } else {
+            $output .='<script type="text/javascript">$(document).ready(function() { wishlist.add("-1"); cart.remove("-1");})</script>';
         }
         
     }
