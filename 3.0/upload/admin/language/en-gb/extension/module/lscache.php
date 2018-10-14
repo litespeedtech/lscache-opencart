@@ -60,7 +60,7 @@ $_['button_deletePage'] = 'Delete Page Setting';
 $_['tab_general'] = 'General';
 $_['tab_pages'] = 'Page Setting';
 $_['tab_advanced'] = 'Advanced';
-$_['tab_modules'] = 'ESI Mdoules';
+$_['tab_modules'] = 'ESI Modules';
 
 $_['page_name'] = 'Page Name';
 $_['page_route'] = 'Page Route';
