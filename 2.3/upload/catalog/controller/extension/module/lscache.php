@@ -245,7 +245,7 @@ class ControllerExtensionModuleLSCache extends Controller {
             $content = $this->load->controller($esiRoute);
         }
         else {
-            $setting_info = $this->model_setting_module->getModule($module_id);
+            $setting_info = $this->model_extension_module_lscache->getModule($module_id);
 
             if ($setting_info && $setting_info['status']) {
                 $content = $this->load->controller($esiRoute, $setting_info);

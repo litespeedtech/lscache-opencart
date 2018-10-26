@@ -19,11 +19,15 @@ class ModelExtensionModuleLSCache extends Model {
         
         foreach ($data as $key => $value) {
             if((substr($key, 0, 4)=='page') || (substr($key, 0, 3)=='esi')){
-               list($field, $property) = explode('-', $key);
-               if(!isset($settings[$field])){
-                   $settings[$field] = new stdClass();
-               }
-               $settings[$field]->$property = trim($value) ;
+                list($field, $property) = explode('-', $key);
+                if(!isset($settings[$field]) && (substr($key, 0, 3)=='esi')){
+                    $settings[$field] = new stdClass();
+                } else if(!isset($settings[$field]) && (substr($key, 0, 4)=='page')){
+                    $settings[$field] = new stdClass();
+                    $settings[$field]->cacheLogin = "0";
+                    $settings[$field]->cacheLogout = "0";
+                }
+                $settings[$field]->$property = trim($value) ;
             } else if(substr($key, 0, 6)=='module') {
                $settings[$key] = trim($value);
             }

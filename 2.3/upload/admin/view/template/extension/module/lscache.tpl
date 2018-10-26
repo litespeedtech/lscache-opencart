@@ -183,7 +183,7 @@
                               <option value="<?php echo $module['module_id'] ; ?>" ><?php echo $module['code'] ; ?> : <?php echo $module['name'] ; ?> &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; extension/module/<?php echo $module['code'] ; ?> </option>
                               <?php } ?>
                               <?php foreach($extensionOptions as $module) { ?>
-                              <option value="<?php echo $module['code'] ; ?>" ><?php echo $module.code ; ?>&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;  extension/module/<?php echo module['code'] ; ?> </option>
+                              <option value="<?php echo $module['code'] ; ?>" ><?php echo $module['code'] ; ?>&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;  extension/module/<?php echo $module['code'] ; ?> </option>
                               <?php } ?>
                             </select>
                           </td>
@@ -199,18 +199,18 @@
 
                           <td class="text-left">
                             <select name="esi_add-esi_type" class="form-control">
-                              <option value="3" <?php echo $selectDisable->check($module['esi_type'], '3') ; ?>><?php echo $esi_public ; ?></option>
-                              <option value="2" <?php echo $selectDisable->check($module['esi_type'], '2') ; ?>><?php echo $esi_private ; ?></option>
-                              <option value="1" <?php echo $selectDisable->check($module['esi_type'], '1') ; ?>><?php echo $esi_none ; ?></option>
-                              <option value="0" <?php echo $selectDisable->check($module['esi_type'], '0') ; ?>><?php echo $esi_disabled ; ?></option>
+                              <option value="3" selected><?php echo $esi_public ; ?></option>
+                              <option value="2" ><?php echo $esi_private ; ?></option>
+                              <option value="1" ><?php echo $esi_none ; ?></option>
+                              <option value="0" ><?php echo $esi_disabled ; ?></option>
                             </select>
                           </td>
-                          <td class="text-left"><input type="text" name="esi_add-esi_ttl" value="<?php echo $module.esi_ttl; ?>" placeholder="ESI Module TTS (seconds)"  class="form-control"></td>
+                          <td class="text-left"><input type="text" name="esi_add-esi_ttl" value="1800" placeholder="ESI Module TTS (seconds)"  class="form-control"></td>
                           <td class="text-left">
                             <select name="esi_add-esi_tag" id="input-status" class="form-control">
-                              <option value="" <?php echo $selectDefault->check(module['esi_tag'], '') ; ?>><?php echo $text_default ; ?></option>
-                              <option value="esi_cart" <?php echo $selectDefault->check(module['esi_tag'], 'esi_cart') ; ?>>esi_cart</option>
-                              <option value="esi_wishlist" <?php echo $selectDefault->check(module['esi_type'], 'esi_wishlist') ; ?>>esi_wishlist</option>
+                              <option value="" selected><?php echo $text_default ; ?></option>
+                              <option value="esi_cart">esi_cart</option>
+                              <option value="esi_wishlist">esi_wishlist</option>
                             </select>
                           </td>
                           <td class="text-right">
@@ -245,7 +245,7 @@
                             <a href="<?php echo $purgeESI ; ?>&key=<?php echo $module['key']; ?>" data-toggle="tooltip" title="<?php echo $button_purgeESI ; ?>" class="btn btn-warning"><i class="fa fa-trash"></i></a>
                           <?php } ?>
 
-                          <?php if($module['default'] != '1') { ?>
+                          <?php if((!isset($module['default'])) || ($module['default'] != '1')) { ?>
                           <a href="<?php echo $deleteESI ; ?>&key=<?php echo $module['key']; ?>" data-toggle="tooltip" title="<?php echo $button_deleteModule ; ?>" class="btn btn-danger"><i class="fa fa-minus-circle"></i></a>
                           <?php } ?>
                           

@@ -199,18 +199,18 @@
 
                           <td class="text-left">
                             <select name="esi_add-esi_type" class="form-control">
-                              <option value="3" {{ selectDisable.check(module.esi_type, '3') }}>{{ esi_public }}</option>
-                              <option value="2" {{ selectDisable.check(module.esi_type, '2') }}>{{ esi_private }}</option>
-                              <option value="1" {{ selectDisable.check(module.esi_type, '1') }}>{{ esi_none }}</option>
-                              <option value="0" {{ selectDisable.check(module.esi_type, '0') }}>{{ esi_disabled }}</option>
+                              <option value="3" selected>{{ esi_public }}</option>
+                              <option value="2">{{ esi_private }}</option>
+                              <option value="1">{{ esi_none }}</option>
+                              <option value="0">{{ esi_disabled }}</option>
                             </select>
                           </td>
-                          <td class="text-left"><input type="text" name="esi_add-esi_ttl" value="{{module.esi_ttl}}" placeholder="ESI Module TTS (seconds)"  class="form-control"></td>
+                          <td class="text-left"><input type="text" name="esi_add-esi_ttl" value="1800" placeholder="ESI Module TTS (seconds)"  class="form-control"></td>
                           <td class="text-left">
                             <select name="esi_add-esi_tag" id="input-status" class="form-control">
-                              <option value="" {{ selectDefault.check(module.esi_tag, '') }}>{{ text_default }}</option>
-                              <option value="esi_cart" {{ selectDefault.check(module.esi_tag, 'esi_cart') }}>esi_cart</option>
-                              <option value="esi_wishlist" {{ selectDefault.check(module.esi_type, 'esi_wishlist') }}>esi_wishlist</option>
+                              <option value="" selected>{{ text_default }}</option>
+                              <option value="esi_cart">esi_cart</option>
+                              <option value="esi_wishlist">esi_wishlist</option>
                             </select>
                           </td>
                           <td class="text-right">
