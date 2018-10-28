@@ -451,7 +451,8 @@ class ControllerExtensionModuleLSCache extends Controller {
         if(($this->lscache==null) || (!$this->lscache->cacheEnabled)){
             return;
         }
-        
+        error_reporting(0);
+        $this->response->addHeader('Access-Control-Allow-Origin: *');
         if(isset($this->request->post['product_id']) && ($this->request->post['product_id']=="-1")){
 			if ($this->customer->isLogged()) {
 				$this->load->model('account/wishlist');
