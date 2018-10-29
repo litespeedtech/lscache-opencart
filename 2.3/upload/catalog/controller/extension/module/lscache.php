@@ -438,10 +438,10 @@ class ControllerExtensionModuleLSCache extends Controller {
             return;
         }
         
-        if(!$this->lscache->esiEnabled){
-            $output .='<script type="text/javascript">$(document).ready(function() { wishlist.add("-1"); })</script>';
+        if($this->lscache->esiEnabled){
+            $output .='<script type="text/javascript">$(document).ready(function() { try { wishlist.add("-1"); } } catch(err){console.log(err.message);})</script>';
         } else {
-            $output .='<script type="text/javascript">$(document).ready(function() { wishlist.add("-1"); cart.remove("-1");})</script>';
+            $output .='<script type="text/javascript">$(document).ready(function() {try{ wishlist.add("-1"); cart.remove("-1");}} catch(err){console.log(err.message)}</script>';
         }
         
     }
@@ -463,7 +463,11 @@ class ControllerExtensionModuleLSCache extends Controller {
             }
     		$this->load->language('account/wishlist');
             $json = array();
-			$json['total'] = sprintf($this->language->get('text_wishlist'), $total);
+            $text_wishlist = $this->language->get('text_wishlist');
+            if(empty($text_wishlist)){
+                $text_wishlist = 'Wish List (%s)';
+            }
+			$json['total'] = sprintf($text_wishlist, $total);
             
     		$this->response->setOutput(json_encode($json));
             

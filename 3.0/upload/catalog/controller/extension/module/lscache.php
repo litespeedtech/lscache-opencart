@@ -437,11 +437,10 @@ class ControllerExtensionModuleLSCache extends Controller {
         if(($this->lscache==null) || (!$this->lscache->pageCachable)){
             return;
         }
-        
-        if(!$this->lscache->esiEnabled){
-            $output .='<script type="text/javascript">$(document).ready(function() { wishlist.add("-1"); })</script>';
+        if($this->lscache->esiEnabled){
+            $output .='<script type="text/javascript">$(document).ready(function() { try { wishlist.add("-1"); } } catch(err){console.log(err.message);})</script>';
         } else {
-            $output .='<script type="text/javascript">$(document).ready(function() { wishlist.add("-1"); cart.remove("-1");})</script>';
+            $output .='<script type="text/javascript">$(document).ready(function() {try{ wishlist.add("-1"); cart.remove("-1");}} catch(err){console.log(err.message)}</script>';
         }
         
     }
@@ -451,8 +450,9 @@ class ControllerExtensionModuleLSCache extends Controller {
         if(($this->lscache==null) || (!$this->lscache->cacheEnabled)){
             return;
         }
-        error_reporting(0);
+
         $this->response->addHeader('Access-Control-Allow-Origin: *');
+
         if(isset($this->request->post['product_id']) && ($this->request->post['product_id']=="-1")){
 			if ($this->customer->isLogged()) {
 				$this->load->model('account/wishlist');
@@ -461,9 +461,13 @@ class ControllerExtensionModuleLSCache extends Controller {
                 $total = isset($this->session->data['wishlist']) ? count($this->session->data['wishlist']) : 0;
             }
     		$this->load->language('account/wishlist');
+            $text_wishlist = $this->language->get('text_wishlist');
+            if(empty($text_wishlist)){
+                $text_wishlist = 'Wish List (%s)';
+            }
             $json = array();
-			$json['total'] = sprintf($this->language->get('text_wishlist'), $total);
-            
+			$json['total'] = sprintf($text_wishlist, $total);
+
     		$this->response->setOutput(json_encode($json));
             
             return json_encode($json);
