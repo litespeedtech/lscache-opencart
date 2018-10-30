@@ -66,7 +66,6 @@ class ControllerExtensionModuleLSCache extends Controller {
                     $data['success'] .=  '<br><i class="fa fa-check-circle"></i> ' .  $this->language->get('text_purgeSuccess');
                 }
             }
-            
         }
         else if( ($action == 'purgeAll') && $lscInstance){
             $data['success'] = $this->language->get('text_purgeSuccess');
@@ -202,8 +201,9 @@ class ControllerExtensionModuleLSCache extends Controller {
 
     public function purgeAllButton($route, &$args, &$output){
         if ($this->user && $this->user->hasPermission('modify', 'extension/module/lscache')) {
-            $this->load->language('extension/module/lscache');
-            $button = '<li><a href="' . $this->url->link('extension/module/lscache', 'user_token=' . $this->session->data['user_token']) . '&action=purgeAllButton'  . '" data-toggle="tooltip" title="" class="btn" data-original-title="'. $this->language->get('button_purgeAll') .'"><i class="fa fa-trash"></i><span class="hidden-xs hidden-sm hidden-md"> Purge All LiteSpeed Cache</span></a></li>';
+            $lan = new Language();
+            $lan->load('extension/module/lscache');
+            $button = '<li><a href="' . $this->url->link('extension/module/lscache', 'user_token=' . $this->session->data['user_token']) . '&action=purgeAllButton'  . '" data-toggle="tooltip" title="" class="btn" data-original-title="'. $lan->get('button_purgeAll') .'"><i class="fa fa-trash"></i><span class="hidden-xs hidden-sm hidden-md"> Purge All LiteSpeed Cache</span></a></li>';
             $search = '<ul class="nav navbar-nav navbar-right">';
             $output = str_replace($search, $search.$button, $output);
         }
@@ -264,6 +264,13 @@ class ControllerExtensionModuleLSCache extends Controller {
             $lscInstance->purgeAllPublic();
             //$this->log($lscInstance->getLogBuffer(), 0);
         }
+        
+        if (function_exists('opcache_reset')){
+            opcache_reset();
+        } else if (function_exists('phpopcache_reset')){
+            phpopcache_reset();
+        }
+        
 	}
     
     
@@ -529,7 +536,7 @@ class ControllerExtensionModuleLSCache extends Controller {
 	}
     
     public function log($content = null, $logLevel = self::LOG_INFO) {
-        if(($logLevel<=self::LOG_ERROR) && (!empty($content))){
+        if(isset($this->session->data['lscacheOption']) && ($this->session->data['lscacheOption']=="debug")){
             $this->log->write($content);
             return;
         }

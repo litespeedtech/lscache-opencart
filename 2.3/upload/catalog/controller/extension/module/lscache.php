@@ -16,6 +16,7 @@ class ControllerExtensionModuleLSCache extends Controller {
 
     public function onAfterInitialize($route, &$args) {
 
+
         if($this->lscache!=null){
             return;
         } else if($route=="extension/module/lscache/renderESI"){
@@ -106,7 +107,7 @@ class ControllerExtensionModuleLSCache extends Controller {
                     $this->event->register('controller/'. $route . '/before', new Action('extension/module/lscache/onAfterRenderModule'));
                 }
             }
-            $this->event->register('model/setting/module/getModule', new Action('extension/module/lscache/onAfterGetModule'));
+            $this->event->register('model/extension/module/getModule', new Action('extension/module/lscache/onAfterGetModule'));
         }
         
     }
@@ -182,7 +183,18 @@ class ControllerExtensionModuleLSCache extends Controller {
         
     }
 
-    
+    public function lscacheOption(){
+        if(isset($this->request->get['lsOption'])){
+            $this->session->data['lscacheOption'] = $this->request->get['lsOption'];
+            $content = "LSCache Option was set";
+            $this->response->setOutput($content);
+        } else {
+            unset($this->session->data['lscacheOption']);
+            $content = "LSCache Option was unset";
+            $this->response->setOutput($content);
+        }
+    }
+        
     
     public function renderESI(){
         if(($this->lscache==null) || (!$this->lscache->cacheEnabled)){
@@ -514,11 +526,14 @@ class ControllerExtensionModuleLSCache extends Controller {
     
 
     public function log($content = null, $logLevel = self::LOG_INFO) {
-        if($this->lscache==null){
-            if(($logLevel<=self::LOG_ERROR) && (!empty($content))){
-        		$this->log->write($content);
-            }
+        if(isset($this->session->data['lscacheOption']) && ($this->session->data['lscacheOption']=="debug")){
+            $this->log->write($content);
             return;
+        }
+
+        if($this->lscache==null){
+            $this->load->model('extension/module/lscache');
+            $this->lscache =  (object) array('setting'=> $this->model_extension_module_lscache->getItems() );
         }
 
         if ($content == null) {
@@ -527,7 +542,7 @@ class ControllerExtensionModuleLSCache extends Controller {
             }
             $content = $this->lscache->lscInstance->getLogBuffer();
         }
-            
+
         if (!isset($this->lscache->setting['module_lscache_log_level'])) {
             return;
         }
@@ -536,7 +551,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         if ($logLevel > $logLevelSetting) {
             return;
         }
-        
+
         $logInfo = "LiteSpeed Cache Info:\n";
         if($logLevel == self::LOG_ERROR){
             $logInfo = "LiteSpeed Cache Error:\n";
@@ -544,7 +559,7 @@ class ControllerExtensionModuleLSCache extends Controller {
             $logInfo = "LiteSpeed Cache Debug:\n";
         }
 
-		$this->log->write($logInfo . $content);
+        $this->log->write($logInfo . $content);
         
     }
 
@@ -643,9 +658,14 @@ class ControllerExtensionModuleLSCache extends Controller {
         $current = 0;
 
         ob_implicit_flush(TRUE);
+        if (ob_get_contents()){
+            ob_end_clean();
+        }
         echo '<h3>Recache may take several minutes</h3><br/>';
-
+        flush();
+        
         foreach ($urls as $url) {
+            $this->log('crawl:'.$url);
             $start = microtime();
             $ch = curl_init();
             $url = str_replace('&amp;', '&', $url);
@@ -657,7 +677,6 @@ class ControllerExtensionModuleLSCache extends Controller {
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
             curl_setopt($ch, CURLOPT_MAXREDIRS, 1);
             curl_setopt($ch, CURLOPT_USERAGENT, 'lscache_runner');
-//            $this->log('crawl:'.$url, 0);
             $buffer = curl_exec($ch);
             $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
@@ -665,12 +684,16 @@ class ControllerExtensionModuleLSCache extends Controller {
             if (in_array($httpcode, $acceptCode)) {
                 $success++;
             }
+            else{
+                $this->log('httpcode:' . $httpcode);
+            }
             $current++;
 
             echo '*';
             if ($current % 10 == 0) {
                 echo floor($current * 100 / $count) . '%<br/>';
             }
+            flush();
             
             $end = microtime();
             $diff = $this->microtimeMinus($start, $end);
