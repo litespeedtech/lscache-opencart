@@ -53,7 +53,7 @@ class LiteSpeedCacheCore extends LiteSpeedCacheBase
         }
         
         foreach ($tags as $tag) {
-            if(empty(trim($tag))){
+            if(trim($tag)==""){
                 continue;
             }
             $tagStr = $prefix . $this->site_only_tag . trim($tag);

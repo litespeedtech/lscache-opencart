@@ -46,7 +46,7 @@ class LiteSpeedCacheBase
         }
         
         foreach ($tags as $tag) {
-            if(empty(trim($tag))){
+            if(trim($tag)==""){
                 continue;
             }
             

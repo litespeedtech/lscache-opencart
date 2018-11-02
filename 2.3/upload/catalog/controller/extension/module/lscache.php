@@ -183,19 +183,6 @@ class ControllerExtensionModuleLSCache extends Controller {
         
     }
 
-    public function lscacheOption(){
-        if(isset($this->request->get['lsOption'])){
-            $this->session->data['lscacheOption'] = $this->request->get['lsOption'];
-            $content = "LSCache Option was set";
-            $this->response->setOutput($content);
-        } else {
-            unset($this->session->data['lscacheOption']);
-            $content = "LSCache Option was unset";
-            $this->response->setOutput($content);
-        }
-    }
-        
-    
     public function renderESI(){
         if(($this->lscache==null) || (!$this->lscache->cacheEnabled)){
             http_response_code(403);
@@ -451,9 +438,9 @@ class ControllerExtensionModuleLSCache extends Controller {
         }
         
         if($this->lscache->esiEnabled){
-            $output .='<script type="text/javascript">$(document).ready(function() { try { wishlist.add("-1"); } } catch(err){console.log(err.message);})</script>';
+            $output .='<script type="text/javascript">$(document).ready(function() { try { wishlist.add("-1");  } catch(err){console.log(err.message);}});</script>';
         } else {
-            $output .='<script type="text/javascript">$(document).ready(function() {try{ wishlist.add("-1"); cart.remove("-1");}} catch(err){console.log(err.message)}</script>';
+            $output .='<script type="text/javascript">$(document).ready(function() {try{ wishlist.add("-1"); cart.remove("-1");} catch(err){console.log(err.message)}});</script>';
         }
         
     }
@@ -526,11 +513,6 @@ class ControllerExtensionModuleLSCache extends Controller {
     
 
     public function log($content = null, $logLevel = self::LOG_INFO) {
-        if(isset($this->session->data['lscacheOption']) && ($this->session->data['lscacheOption']=="debug")){
-            $this->log->write($content);
-            return;
-        }
-
         if($this->lscache==null){
             $this->load->model('extension/module/lscache');
             $this->lscache =  (object) array('setting'=> $this->model_extension_module_lscache->getItems() );
@@ -542,16 +524,22 @@ class ControllerExtensionModuleLSCache extends Controller {
             }
             $content = $this->lscache->lscInstance->getLogBuffer();
         }
-
+        
         if (!isset($this->lscache->setting['module_lscache_log_level'])) {
             return;
         }
 
         $logLevelSetting = $this->lscache->setting['module_lscache_log_level'];
-        if ($logLevel > $logLevelSetting) {
+        
+        if(isset($this->session->data['lscacheOption']) && ($this->session->data['lscacheOption']=="debug")){
+            $this->log->write($content);
+            return;
+        } else if($logLevelSetting ==self::LOG_DEBUG) {
+            return;
+        } else if ($logLevel > $logLevelSetting) {
             return;
         }
-
+        
         $logInfo = "LiteSpeed Cache Info:\n";
         if($logLevel == self::LOG_ERROR){
             $logInfo = "LiteSpeed Cache Error:\n";
@@ -559,11 +547,11 @@ class ControllerExtensionModuleLSCache extends Controller {
             $logInfo = "LiteSpeed Cache Debug:\n";
         }
 
-        $this->log->write($logInfo . $content);
+		$this->log->write($logInfo . $content);
         
     }
 
-    
+
     public function recache(){
 
         if(!isset($this->session->data['previouseURL'])){
@@ -619,7 +607,9 @@ class ControllerExtensionModuleLSCache extends Controller {
         
 		foreach ($this->model_catalog_product->getProducts() as $result) {
             foreach ($this->model_catalog_product->getCategories($result['product_id']) as $category) {
-                $urls[] = $this->url->link('product/product', 'path=' . $categoryPath[$category['category_id']] . '&product_id=' . $result['product_id']);
+                if(isset( $categoryPath[$category['category_id']] )){
+                    $urls[] = $this->url->link('product/product', 'path=' . $categoryPath[$category['category_id']] . '&product_id=' . $result['product_id']);
+                }
             }
 
             $urls[] = $this->url->link('product/product', 'product_id=' . $result['product_id']);
@@ -643,6 +633,7 @@ class ControllerExtensionModuleLSCache extends Controller {
     }
     
     
+    
     private function crawlUrls($urls) {
         set_time_limit(0);
 
@@ -661,8 +652,11 @@ class ControllerExtensionModuleLSCache extends Controller {
         if (ob_get_contents()){
             ob_end_clean();
         }
+        $this->log('Start Recache:');
         echo '<h3>Recache may take several minutes</h3><br/>';
         flush();
+        
+        $printURL = isset($this->lscache->setting['module_lscache_log_level']) && ($this->lscache->setting['module_lscache_log_level']==self::LOG_DEBUG) ;
         
         foreach ($urls as $url) {
             $this->log('crawl:'.$url);
@@ -683,13 +677,22 @@ class ControllerExtensionModuleLSCache extends Controller {
 
             if (in_array($httpcode, $acceptCode)) {
                 $success++;
+            } else if($httpcode==428){
+                echo 'Web Server crawler feature not enabled, please check <a href="https://www.litespeedtech.com/support/wiki/doku.php/litespeed_wiki:cache:lscwp:configuration:enabling_the_crawler" target="_blank">web server settings</a>';
+                $this->log('httpcode:'.$httpcode);
+                sleep(5);
+                break;
+            } else {
+                $this->log('httpcode:'.$httpcode);
             }
-            else{
-                $this->log('httpcode:' . $httpcode);
-            }
+            
             $current++;
 
-            echo '*';
+            if($printURL){
+                echo 'url: ' . $url . ' httpcode: ' . $httpcode . '<br/>';
+            } else {
+                echo '*';
+            }
             if ($current % 10 == 0) {
                 echo floor($current * 100 / $count) . '%<br/>';
             }
@@ -707,7 +710,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         
     }
     
-    
+
     private function microtimeMinus($start, $end) {
         list($s_usec, $s_sec) = explode(" ", $start);
         list($e_usec, $e_sec) = explode(" ", $end);

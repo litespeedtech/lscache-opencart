@@ -46,6 +46,7 @@ class ControllerExtensionModuleLSCache extends Controller {
     		$this->log('Invalid Access', self::LOG_ERROR);
         }
         else if (($this->request->server['REQUEST_METHOD'] == 'POST')) {
+            $this->session->data['lscacheOption'] = "debug";
             $this->model_extension_module_lscache->editSetting('module_lscache', $this->request->post);
             if(isset($this->session->data['error'])){
                 $data['error_warning'] = $this->session->data['error'] ;
@@ -536,8 +537,7 @@ class ControllerExtensionModuleLSCache extends Controller {
 	}
     
     public function log($content = null, $logLevel = self::LOG_INFO) {
-        if(isset($this->session->data['lscacheOption']) && ($this->session->data['lscacheOption']=="debug")){
-            $this->log->write($content);
+        if(empty($content)){
             return;
         }
         
@@ -549,7 +549,12 @@ class ControllerExtensionModuleLSCache extends Controller {
         }
 
         $logLevelSetting = $setting['module_lscache_log_level'];
-        if ($logLevel > $logLevelSetting) {
+        if(isset($this->session->data['lscacheOption']) && ($this->session->data['lscacheOption']=="debug")){
+            $this->log->write($content);
+            return;
+        } else if($logLevelSetting ==self::LOG_DEBUG) {
+            return;
+        } else if ($logLevel > $logLevelSetting) {
             return;
         }
         
@@ -560,7 +565,7 @@ class ControllerExtensionModuleLSCache extends Controller {
             $logInfo = "LiteSpeed Cache Debug:";
         }
 
-		$this->log->write($content);
+		$this->log->write($logInfo . $content);
         
     }
     

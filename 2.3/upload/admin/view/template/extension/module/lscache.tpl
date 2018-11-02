@@ -90,6 +90,7 @@
                     <select name="module_lscache_log_level" id="input-status" class="form-control">
                       <option value="0" <?php echo $selectDisable->check($module_lscache_log_level, '0') ; ?>><?php echo $text_disabled ; ?></option>
                       <option value="3" <?php echo $selectDisable->check($module_lscache_log_level, '3') ; ?>><?php echo $text_error ; ?></option>
+                      <option value="6" <?php echo $selectDisable->check($module_lscache_log_level, '6') ; ?>><?php echo $text_info ; ?></option>
                       <option value="8" <?php echo $selectDisable->check($module_lscache_log_level, '8') ; ?>><?php echo $text_debug ; ?></option>
                     </select>
                   </div>
