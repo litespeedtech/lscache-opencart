@@ -25,7 +25,6 @@ class ControllerExtensionModuleLSCache extends Controller {
         $parentLink = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'].'&type=module');
         $siteUrl = new Url(HTTP_CATALOG, HTTPS_CATALOG);
         $recacheLink = $siteUrl->link('extension/module/lscache/recache', 'user_token=' . $this->session->data['user_token']);
-        $lscInstance = $this->lscacheInit();
         
         $action = 'index' ;
         if(isset($this->request->get['action'])){
@@ -33,6 +32,13 @@ class ControllerExtensionModuleLSCache extends Controller {
         }
         $data['action'] = $action;
 
+        if($action=='purgeAllButton'){
+            $lscInstance = $this->lscacheInit(true);
+        } else {
+            $lscInstance = $this->lscacheInit();
+        }
+        $data["serverType"] = LITESPEED_SERVER_TYPE;
+        
         if(isset($this->request->get['tab'])){
             $data["tab"] = $this->request->get['tab'];
         } else {
@@ -79,6 +85,7 @@ class ControllerExtensionModuleLSCache extends Controller {
             $this->log($lscInstance->getLogBuffer());
             if(isset($_SERVER['HTTP_REFERER'])){
                 $this->response->redirect($_SERVER['HTTP_REFERER']);
+                return;
             }
         }
         else if(($action == 'deletePage') && isset($this->request->get['key'])) {
@@ -247,6 +254,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         $this->model_setting_event->addEvent('lscache_cart_add', 'catalog/controller/checkout/cart/add/after', 'extension/module/lscache/editCart');
         $this->model_setting_event->addEvent('lscache_cart_edit', 'catalog/controller/checkout/cart/edit/after', 'extension/module/lscache/editCart');
         $this->model_setting_event->addEvent('lscache_cart_remove', 'catalog/controller/checkout/cart/remove/after', 'extension/module/lscache/editCart');
+        $this->model_setting_event->addEvent('lscache_compare_check', 'catalog/controller/product/compare/add/before', 'extension/module/lscache/checkCompare');
         $this->model_setting_event->addEvent('lscache_wishlist_check', 'catalog/controller/account/wishlist/add/before', 'extension/module/lscache/checkWishlist');
         $this->model_setting_event->addEvent('lscache_wishlist_edit', 'catalog/controller/account/wishlist/add/after', 'extension/module/lscache/editWishlist');
         $this->model_setting_event->addEvent('lscache_wishlist_display', 'catalog/controller/account/wishlist/after', 'extension/module/lscache/editWishlist');
@@ -310,6 +318,7 @@ class ControllerExtensionModuleLSCache extends Controller {
 		$this->model_setting_event->deleteEventByCode('lscache_wishlist_display');
 		$this->model_setting_event->deleteEventByCode('lscache_wishlist_edit');
 		$this->model_setting_event->deleteEventByCode('lscache_wishlist_check');
+		$this->model_setting_event->deleteEventByCode('lscache_compare_check');
 		$this->model_setting_event->deleteEventByCode('lscache_user_forgotten');
 		$this->model_setting_event->deleteEventByCode('lscache_user_login');
 		$this->model_setting_event->deleteEventByCode('lscache_user_logout');
@@ -451,7 +460,7 @@ class ControllerExtensionModuleLSCache extends Controller {
     }
     
     
-    private function lscacheInit() {
+    private function lscacheInit($redirect = false) {
 
         $this->load->model('extension/module/lscache');
         $setting = $this->model_extension_module_lscache->getItems();
@@ -479,7 +488,9 @@ class ControllerExtensionModuleLSCache extends Controller {
             include_once(DIR_SYSTEM . 'library/lscache/lscachebase.php');
             include_once(DIR_SYSTEM . 'library/lscache/lscachecore.php');
             $lscInstance = new LiteSpeedCacheCore();
-            $lscInstance->setHeaderFunction($this->response, 'addHeader');
+            if(!$redirect){
+                $lscInstance->setHeaderFunction($this->response, 'addHeader');
+            }
             return $lscInstance;
         } else {
             return false;

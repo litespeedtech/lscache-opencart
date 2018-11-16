@@ -56,6 +56,7 @@
                     </select>
                   </div>
                 </div>
+                    
                 <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_public_ttl"><span data-toggle="tooltip" title="{{ help_public_ttl }}">{{ entry_public_ttl }}</span></label>
                   <div class="col-sm-10">
@@ -67,7 +68,9 @@
                   <label class="col-sm-2 control-label" for="module_lscache_esi">{{ entry_esi }}</label>
                   <div class="col-sm-10">
                     <select name="module_lscache_esi" id="input-status" class="form-control">
-                      <option value="1" {{ selectEnable.check(module_lscache_esi, '1') }}>{{ text_enabled }}</option>
+                {% if serverType == 'LITESPEED_SERVER_ADC' or serverType == 'LITESPEED_SERVER_ENT'  %}
+                       <option value="1" {{ selectEnable.check(module_lscache_esi, '1') }}>{{ text_enabled }}</option>
+                {% endif %}
                       <option value="0" {{ selectEnable.check(module_lscache_esi, '0') }}>{{ text_disabled }}</option>
                     </select>
                   </div>
@@ -92,6 +95,26 @@
                       <option value="3" {{ selectDisable.check(module_lscache_log_level, '3') }}>{{ text_error }}</option>
                       <option value="6" {{ selectDisable.check(module_lscache_log_level, '6') }}>{{ text_info }}</option>
                       <option value="8" {{ selectDisable.check(module_lscache_log_level, '8') }}>{{ text_debug }}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="col-sm-2 control-label" for="module_lscache_ajax_wishlist">{{ entry_ajax_wishlist }}</label>
+                  <div class="col-sm-10">
+                    <select name="module_lscache_ajax_wishlist" id="input-status" class="form-control">
+                      <option value="1" {{ selectEnable.check(module_lscache_ajax_wishlist, '1') }}>{{ text_enabled }}</option>
+                      <option value="0" {{ selectEnable.check(module_lscache_ajax_wishlist, '0') }}>{{ text_disabled }}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="col-sm-2 control-label" for="module_lscache_ajax_compare">{{ entry_ajax_compare }}</label>
+                  <div class="col-sm-10">
+                    <select name="module_lscache_ajax_compare" id="input-status" class="form-control">
+                      <option value="1" {{ selectDisable.check(module_lscache_ajax_compare, '1') }}>{{ text_enabled }}</option>
+                      <option value="0" {{ selectDisable.check(module_lscache_ajax_compare, '0') }}>{{ text_disabled }}</option>
                     </select>
                   </div>
                 </div>
@@ -156,6 +179,12 @@
             </div>
 
             <div class="tab-pane {{tabtool.check(tab, 'modules')}}" id="tab-modules">
+                {% if serverType == 'LITESPEED_SERVER_OLS' %}
+                <div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> {{ esi_not_support }}
+                  <button type="button" class="close" data-dismiss="alert">&times;</button>
+                </div>
+                {% endif %}
+                
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover">
                       <thead>

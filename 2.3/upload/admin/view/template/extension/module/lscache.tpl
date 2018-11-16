@@ -56,6 +56,7 @@
                     </select>
                   </div>
                 </div>
+                
                 <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_public_ttl"><span data-toggle="tooltip" title="<?php echo $help_public_ttl ; ?>"><?php echo $entry_public_ttl ; ?></span></label>
                   <div class="col-sm-10">
@@ -67,7 +68,9 @@
                   <label class="col-sm-2 control-label" for="module_lscache_esi"><?php echo $entry_esi ; ?></label>
                   <div class="col-sm-10">
                     <select name="module_lscache_esi" id="input-status" class="form-control">
+                <?php if(($serverType == 'LITESPEED_SERVER_ADC') || ($serverType == 'LITESPEED_SERVER_ENT'))  { ?>
                       <option value="1" <?php echo $selectEnable->check($module_lscache_esi, '1') ; ?>><?php echo $text_enabled ; ?></option>
+                <?php } ?>
                       <option value="0" <?php echo $selectEnable->check($module_lscache_esi, '0') ; ?>><?php echo $text_disabled ; ?></option>
                     </select>
                   </div>
@@ -95,7 +98,28 @@
                     </select>
                   </div>
                 </div>
-                    
+
+                <div class="form-group">
+                  <label class="col-sm-2 control-label" for="module_lscache_ajax_wishlist"><?php echo $entry_ajax_wishlist ; ?></label>
+                  <div class="col-sm-10">
+                    <select name="module_lscache_ajax_wishlist" id="input-status" class="form-control">
+                      <option value="1" <?php echo $selectEnable->check($module_lscache_ajax_wishlist, '1') ; ?>><?php echo $text_enabled ; ?></option>
+                      <option value="0" <?php echo $selectEnable->check($module_lscache_ajax_wishlist, '0') ; ?>><?php echo $text_disabled ; ?></option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div class="form-group">
+                  <label class="col-sm-2 control-label" for="module_lscache_ajax_compare"><?php echo $entry_ajax_compare ; ?></label>
+                  <div class="col-sm-10">
+                    <select name="module_lscache_ajax_compare" id="input-status" class="form-control">
+                      <option value="1" <?php echo $selectDisable->check($module_lscache_ajax_compare, '1') ; ?>><?php echo $text_enabled ; ?></option>
+                      <option value="0" <?php echo $selectDisable->check($module_lscache_ajax_compare, '0') ; ?>><?php echo $text_disabled ; ?></option>
+                    </select>
+                  </div>
+                </div>
+                
+                
             </div>
                     
             <div class="tab-pane <?php echo $tabtool->check($tab,'pages'); ?>" id="tab-pages">
@@ -156,6 +180,11 @@
             </div>
 
             <div class="tab-pane <?php echo $tabtool->check($tab, 'modules'); ?>" id="tab-modules">
+                <?php if($serverType == 'LITESPEED_SERVER_OLS') { ?>
+                <div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> <?php echo $esi_not_support ; ?>
+                  <button type="button" class="close" data-dismiss="alert">&times;</button>
+                </div>
+                <?php } ?>
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover">
                       <thead>

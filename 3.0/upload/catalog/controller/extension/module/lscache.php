@@ -16,20 +16,27 @@ class ControllerExtensionModuleLSCache extends Controller {
 
     public function onAfterInitialize($route, &$args) {
 
-        if($this->lscache!=null){
-            return;
+        //$this->log->write('init:' . $route . PHP_EOL);
+
+        if($this->lscache==null){
+            //pass
         } else if($route=="extension/module/lscache/renderESI"){
-            //ESI render
-        } else if(strpos($route, "extension") === 0) {
+            return; //ESI render
+        } else if($this->lscache->pageCachable) {
+            return;
+        } else if($this->lscache->cacheEnabled) {
+            $this->onAfterRoute($route, $args);
+            return;
+        } else{
             return;
         }
         
-        $this->lscache =  (object) array('route' => $route, 'setting' => null, 'cacheEnabled' => false, 'pageCachable' => false, 'esiEnabled' => false, 'esiOn' => false,  'cacheTags'=> array(), 'lscInstance'=> null );
-        $this->event->unregister('controller/*/before', 'extension/module/lscache/onAfterInitialize');
+        $this->lscache =  (object) array('route' => $route, 'setting' => null, 'cacheEnabled' => false, 'pageCachable' => false, 'esiEnabled' => false, 'esiOn' => false,  'cacheTags'=> array(), 'lscInstance'=> null, 'pages'=>null );
 
         $this->load->model('extension/module/lscache');
         $this->lscache->setting = $this->model_extension_module_lscache->getItems();
-        
+        $this->lscache->pages =   $this->model_extension_module_lscache->getPages();
+
         if (isset($this->lscache->setting['module_lscache_status']) && (!$this->lscache->setting['module_lscache_status']))  {
             return;
         }
@@ -47,6 +54,8 @@ class ControllerExtensionModuleLSCache extends Controller {
             }
         }
 
+        //$this->log('server type:' . LITESPEED_SERVER_TYPE);
+
         // Checks if caching is allowed via server variable
         if (!empty($_SERVER['X-LSCACHE']) || LITESPEED_SERVER_TYPE === 'LITESPEED_SERVER_ADC' || defined('LITESPEED_CLI')) {
             !defined('LITESPEED_ALLOWED') && define('LITESPEED_ALLOWED', true);
@@ -59,7 +68,6 @@ class ControllerExtensionModuleLSCache extends Controller {
             $this->lscache->esiEnabled = true;
         }
         
-        $this->event->register('controller/'. $route . '/after', new Action('extension/module/lscache/onAfterRender'));
         include_once(DIR_SYSTEM . 'library/lscache/lscachebase.php');
         include_once(DIR_SYSTEM . 'library/lscache/lscachecore.php');
         $this->lscache->lscInstance = new LiteSpeedCacheCore();
@@ -75,12 +83,15 @@ class ControllerExtensionModuleLSCache extends Controller {
     public function onAfterRoute($route, &$args) {
         
         $pageKey = 'page_' . str_replace('/', '_', $route);
-        $pages = $this->model_extension_module_lscache->getPages();
-        if(isset($pages[$pageKey])){
-            $pageSetting = $pages[$pageKey];
+        if(isset($this->lscache->pages[$pageKey])){
+            $pageSetting = $this->lscache->pages[$pageKey];
         } else {
             return;
         }
+        //$this->log('route:' . $route);
+        
+        $this->event->unregister('controller/*/before', 'extension/module/lscache/onAfterInitialize');
+        $this->event->register('controller/'. $route . '/after', new Action('extension/module/lscache/onAfterRender'));
         
         if($this->customer->isLogged()){
             if($pageSetting['cacheLogin']){
@@ -94,6 +105,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         } else {
             return;
         }
+        //$this->log('page cachable:' . $this->lscache->pageCachable);
         
         $this->lscache->cacheTags[] = $pageKey;
         
@@ -179,6 +191,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         $this->lscache->lscInstance->setPublicTTL($cacheTimeout);
         $this->lscache->lscInstance->cachePublic($this->lscache->cacheTags, $this->lscache->esiOn);
         $this->log();
+
         
     }
     
@@ -198,17 +211,18 @@ class ControllerExtensionModuleLSCache extends Controller {
             $this->checkVary();
             
             if(isset($this->session->data['redirect']) ){
-                $content=  '<script type="text/javascript">
-                               window.location = "' . $_SERVER['HTTP_REFERER'] . '"
+                $content=  '<script>
+                               window.location = "' . $this->session->data['redirect'] . '";
                             </script>';
-            } else if(isset($_SERVER['HTTP_REFERER'])){
                 
-                $content=  '<script type="text/javascript">
-                               window.location = "' . $this->session->data['redirect'] . '"
+            } else if(isset($_SERVER['HTTP_REFERER'])){
+                $content=  '<script>
+                               window.location = "' . $_SERVER['HTTP_REFERER'] . '";
                             </script>';
+                
             } else {
-                $content=  '<script type="text/javascript">
-                               window.location = "' . $this->url->link('common/home') . '"
+                $content=  '<script>
+                               window.location = "' . $this->url->link('common/home') . '";
                             </script>';
             }
             
@@ -269,6 +283,8 @@ class ControllerExtensionModuleLSCache extends Controller {
             }
             $this->log();
         }
+        
+        $this->event->unregister('controller/*/before', 'extension/module/lscache/onAfterInitialize');
 
     }
     
@@ -435,14 +451,23 @@ class ControllerExtensionModuleLSCache extends Controller {
         if(($this->lscache==null) || (!$this->lscache->pageCachable)){
             return;
         }
-        if($this->lscache->esiEnabled){
-            $output .='<script type="text/javascript">$(document).ready(function() { try { wishlist.add("-1");  } catch(err){console.log(err.message);}});</script>';
-        } else {
-            $output .='<script type="text/javascript">$(document).ready(function() {try{ wishlist.add("-1"); cart.remove("-1");} catch(err){console.log(err.message);}});</script>';
+        
+        $ajax = 'wishlist.add("-1");';
+        if (isset($this->lscache->setting['module_lscache_ajax_wishlist']) && ($this->lscache->setting['module_lscache_ajax_wishlist']=='0')) {
+            $ajax = '';
+        }
+
+        if (isset($this->lscache->setting['module_lscache_ajax_compare']) && ($this->lscache->setting['module_lscache_ajax_compare']=='1')) {
+            $ajax .= 'compare.add("-1");';
+        }
+
+        if(!$this->lscache->esiEnabled){
+            $output .='<script type="text/javascript">$(document).ready(function() {try{ ' . $ajax . ' cart.remove("-1");} catch(err){console.log(err.message);}});</script>';
+        } else if(!empty($ajax)) {
+            $output .='<script type="text/javascript">$(document).ready(function() { try {  ' . $ajax . ' } catch(err){console.log(err.message);}});</script>';
         }
         
     }
-
     
     public function checkWishlist($route, &$args) {
         if(($this->lscache==null) || (!$this->lscache->cacheEnabled)){
@@ -450,6 +475,9 @@ class ControllerExtensionModuleLSCache extends Controller {
         }
 
         $this->response->addHeader('Access-Control-Allow-Origin: *');
+        $this->response->addHeader("Access-Control-Allow-Credentials: true");
+        $this->response->addHeader("Access-Control-Allow-Methods: GET,HEAD,OPTIONS,POST,PUT");
+        $this->response->addHeader("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization");
 
         if(isset($this->request->post['product_id']) && ($this->request->post['product_id']=="-1")){
 			if ($this->customer->isLogged()) {
@@ -460,11 +488,11 @@ class ControllerExtensionModuleLSCache extends Controller {
             }
     		$this->load->language('account/wishlist');
             $text_wishlist = $this->language->get('text_wishlist');
-            if(empty($text_wishlist)){
-                $text_wishlist = 'Wish List (%s)';
-            }
             $json = array();
-			$json['total'] = sprintf($text_wishlist, $total);
+            if(!empty($text_wishlist)){
+    			$json['total'] = sprintf($text_wishlist, $total);
+            }
+			$json['count'] =  $total;
 
     		$this->response->setOutput(json_encode($json));
             
@@ -472,6 +500,32 @@ class ControllerExtensionModuleLSCache extends Controller {
         }
         
     }
+
+    public function checkCompare($route, &$args) {
+        if(($this->lscache==null) || (!$this->lscache->cacheEnabled)){
+            return;
+        }
+
+        $this->response->addHeader('Access-Control-Allow-Origin: *');
+        $this->response->addHeader("Access-Control-Allow-Credentials: true");
+        $this->response->addHeader("Access-Control-Allow-Methods: GET,HEAD,OPTIONS,POST,PUT");
+        $this->response->addHeader("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization");
+
+        if(isset($this->request->post['product_id']) && ($this->request->post['product_id']=="-1")){
+            $total = isset($this->session->data['compare']) ? count($this->session->data['compare']) : 0;
+    		$this->load->language('product/compare');
+            $text_compare = $this->language->get('text_compare');
+            $json = array();
+            if(!empty($text_compare)){
+    			$json['total'] = sprintf($text_compare, $total);
+            }
+			$json['count'] =  $total;
+    		$this->response->setOutput(json_encode($json));
+            return json_encode($json);
+        }
+        
+    }
+    
     
     public function editWishlist($route, &$args, &$output) {
         if(($this->lscache==null) || (!$this->lscache->cacheEnabled)){
@@ -494,8 +548,8 @@ class ControllerExtensionModuleLSCache extends Controller {
             return;
         }
         
-        $this->session->data['redirect'] = $this->request->post['redirect']  ; 
-        $this->request->post['redirect']  = $this->url->link('extension/module/lscache/renderESI', 'action=edit_currency');
+        $this->session->data['currency'] = $this->request->post['code'];
+        $this->checkVary();
     }
     
 
@@ -504,8 +558,8 @@ class ControllerExtensionModuleLSCache extends Controller {
             return;
         }
         
-        $this->session->data['redirect'] = $this->request->post['redirect']  ; 
-        $this->request->post['redirect']  = $this->url->link('extension/module/lscache/renderESI', 'action=edit_language');
+        $this->session->data['language'] = $this->request->post['code'];
+        $this->checkVary();       
     }
     
     

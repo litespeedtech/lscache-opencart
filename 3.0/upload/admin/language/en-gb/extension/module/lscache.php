@@ -35,6 +35,8 @@ $_['entry_login_cachable']     = 'Page Cache for Logged-in Users';
 $_['entry_vary_mobile']     = 'Separate View for Mobile Device';
 $_['entry_vary_login']     = 'Seperate View for Logged-in Users';
 $_['entry_purge_system_cache']     = 'Purge System Cache';
+$_['entry_ajax_wishlist']     = 'Ajax Load Wishlist';
+$_['entry_ajax_compare']     = 'Ajax Load Compare';
 
 
 $_['help_public_ttl']     = 'LiteSpeed page cache lifetime in seconds';
@@ -73,6 +75,7 @@ $_['esi_route'] = 'ESI Module Route';
 $_['esi_type'] = 'ESI Type';
 $_['esi_ttl'] = 'ESI TTL (second)';
 $_['esi_tag'] = 'ESI Tag';
+$_['esi_not_support'] = 'ESI feature is not support in this Web Server, please upgrade to LiteSpeed Enterprice';
 
 $_['esi_public']     = 'ESI with public cache';
 $_['esi_private']    = 'ESI with private cache';
