@@ -465,10 +465,6 @@ class ControllerExtensionModuleLSCache extends Controller {
         $this->load->model('extension/module/lscache');
         $setting = $this->model_extension_module_lscache->getItems();
         
-        if (isset($setting['module_lscache_status']) && (!$setting['module_lscache_status']))  {
-            return false;
-        }
-
         // Server type
         if (!defined('LITESPEED_SERVER_TYPE')) {
             if (isset($_SERVER['HTTP_X_LSCACHE']) && $_SERVER['HTTP_X_LSCACHE']) {
@@ -480,6 +476,10 @@ class ControllerExtensionModuleLSCache extends Controller {
             } else {
                 define('LITESPEED_SERVER_TYPE', 'NONE');
             }
+        }
+
+        if (isset($setting['module_lscache_status']) && (!$setting['module_lscache_status']))  {
+            return false;
         }
 
         // Checks if caching is allowed via server variable
