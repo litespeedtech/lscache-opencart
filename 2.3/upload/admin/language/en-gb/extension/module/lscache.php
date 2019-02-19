@@ -25,6 +25,10 @@ $_['text_Cart'] = 'Cart';
 $_['text_Login'] = 'Login';
 $_['text_duplicate_route'] = 'The new setting has a duplicate route already exists';
 $_['text_exclude_route'] = 'The new setting is in exclude route list';
+$_['text_recache_default'] = 'Rebuild cache for only default language and default currency';
+$_['text_recache_language'] = 'Rebuild cache for all languages and only default currency';
+$_['text_recache_currency'] = 'Rebuild cache for all currencies and only default language';
+$_['text_recache_combination'] = 'Rebuild cache for all language and currency cobinations';
 
 
 $_['entry_status']     = 'LiteSpeed Cache Status';
@@ -37,6 +41,7 @@ $_['entry_vary_login']     = 'Seperate View for Logged-in Users';
 $_['entry_purge_system_cache']     = 'Purge System Cache';
 $_['entry_ajax_wishlist']     = 'Ajax Load Wishlist';
 $_['entry_ajax_compare']     = 'Ajax Load Compare';
+$_['entry_recache_option']     = 'Rebuild Cache Options';
 
 
 $_['help_public_ttl']     = 'LiteSpeed page cache lifetime in seconds';

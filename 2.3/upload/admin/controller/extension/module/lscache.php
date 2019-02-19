@@ -257,6 +257,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         $this->model_extension_event->addEvent('lscache_cart_edit', 'catalog/controller/checkout/cart/edit/after', 'extension/module/lscache/editCart');
         $this->model_extension_event->addEvent('lscache_cart_remove', 'catalog/controller/checkout/cart/remove/after', 'extension/module/lscache/editCart');
         $this->model_extension_event->addEvent('lscache_compare_check', 'catalog/controller/product/compare/add/before', 'extension/module/lscache/checkCompare');
+        $this->model_extension_event->addEvent('lscache_compare_edit', 'catalog/controller/product/compare/add/after', 'extension/module/lscache/checkCompare');
         $this->model_extension_event->addEvent('lscache_wishlist_check', 'catalog/controller/account/wishlist/add/before', 'extension/module/lscache/checkWishlist');
         $this->model_extension_event->addEvent('lscache_wishlist_edit', 'catalog/controller/account/wishlist/add/after', 'extension/module/lscache/editWishlist');
         $this->model_extension_event->addEvent('lscache_wishlist_display', 'catalog/controller/account/wishlist/after', 'extension/module/lscache/editWishlist');
@@ -321,6 +322,7 @@ class ControllerExtensionModuleLSCache extends Controller {
 		$this->model_extension_event->deleteEvent('lscache_wishlist_edit');
 		$this->model_extension_event->deleteEvent('lscache_wishlist_check');
 		$this->model_extension_event->deleteEvent('lscache_compare_check');
+		$this->model_extension_event->deleteEvent('lscache_compare_edit');
 		$this->model_extension_event->deleteEvent('lscache_user_forgotten');
 		$this->model_extension_event->deleteEvent('lscache_user_login');
 		$this->model_extension_event->deleteEvent('lscache_user_logout');

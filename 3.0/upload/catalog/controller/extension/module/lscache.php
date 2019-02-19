@@ -12,7 +12,7 @@ class ControllerExtensionModuleLSCache extends Controller {
     
     const LOG_ERROR = 3;
     const LOG_INFO = 6;
-    const LOG_DEBUG = 8;    
+    const LOG_DEBUG = 8;
 
     public function onAfterInitialize($route, &$args) {
 
@@ -72,6 +72,21 @@ class ControllerExtensionModuleLSCache extends Controller {
         include_once(DIR_SYSTEM . 'library/lscache/lscachecore.php');
         $this->lscache->lscInstance = new LiteSpeedCacheCore();
         $this->lscache->lscInstance->setHeaderFunction($this->response, 'addHeader');
+        
+        if ((isset($_SERVER['HTTP_USER_AGENT'])) && ($_SERVER['HTTP_USER_AGENT'] == 'lscache_runner')){
+            $recache = 0;
+            if (isset($this->lscache->setting['recache_options']))  {
+                $recache = $this->lscache->setting['recache_options'];
+            }
+            
+            if(isset($_COOKIE['language']) && (($recache==1) || ($recache==3))){
+                $this->session->data['language'] = $_COOKIE['language'];
+            }
+            
+            if(isset($_COOKIE['currency']) && (($recache==2) || ($recache==3))){
+                $this->session->data['currency'] = $_COOKIE['currency'];
+            }
+        }
         
         if($route!="extension/module/lscache/renderESI"){
             $this->onAfterRoute($route, $args);
@@ -151,6 +166,7 @@ class ControllerExtensionModuleLSCache extends Controller {
             $output = '<esi:include src="' . $link . '" cache-control="public"/>';
             $this->lscache->esiOn = true;
         } else if ($esiType == 2) {
+            if($this->emptySession()){ return;}
             $output = '<esi:include src="' . $link . '" cache-control="private"/>';
             $this->lscache->esiOn = true;
         } else if ($esiType == 1) {
@@ -176,10 +192,6 @@ class ControllerExtensionModuleLSCache extends Controller {
         }
         
         $this->checkVary();
-        
-        if((!$this->lscache->esiEnabled) && (!$this->emptySession())){
-            return;
-        }
         
         if (!isset($this->lscache->setting['module_lscache_public_ttl'])) {
             $cacheTimeout = 120000;
@@ -209,22 +221,6 @@ class ControllerExtensionModuleLSCache extends Controller {
             }
             
             $this->checkVary();
-            
-            if(isset($this->session->data['redirect']) ){
-                $content=  '<script>
-                               window.location = "' . $this->session->data['redirect'] . '";
-                            </script>';
-                
-            } else if(isset($_SERVER['HTTP_REFERER'])){
-                $content=  '<script>
-                               window.location = "' . $_SERVER['HTTP_REFERER'] . '";
-                            </script>';
-                
-            } else {
-                $content=  '<script>
-                               window.location = "' . $this->url->link('common/home') . '";
-                            </script>';
-            }
             
             $this->response->setOutput($content);
             return;
@@ -299,6 +295,7 @@ class ControllerExtensionModuleLSCache extends Controller {
             return;
         }
         $this->lscache->lscInstance->checkPrivateCookie();
+        define('LSC_PRIVATE', true);
         $this->checkVary();
         if ($this->lscache->esiEnabled) {
             $this->lscache->lscInstance->purgeAllPrivate();
@@ -323,18 +320,25 @@ class ControllerExtensionModuleLSCache extends Controller {
         $vary = array();
         
         if ($this->customer->isLogged() && isset($this->lscache->setting['module_lscache_vary_login']) && ($this->lscache->setting['module_lscache_vary_login']=='1'))  {
-            $vary[] = 'userLoggedIn';
+            $vary['session'] = 'loggedIn';
         }
         
         if($this->session->data['currency']!=$this->config->get('config_currency')){
-            $vary[] = $this->session->data['currency'];
+            $vary['currency'] = $this->session->data['currency'];
         }
         
         if($this->session->data['language']!=$this->config->get('config_language')){
-            $vary[] = $this->session->data['language'];
+            $vary['language'] = $this->session->data['language'];
         }
         
-        $varyKey = implode(',', $vary);
+        if ((count($vary) == 0) && (isset($_COOKIE['lsc_private']) || defined('LSC_PRIVATE'))) {
+            $vary['session'] = 'loggedOut';
+        }
+
+        ksort($vary);
+
+        $varyKey = $this->implode2($vary, ',', ':');
+            
         //$this->log('vary:' . $varyKey, 0);
         $this->lscache->lscInstance->checkVary($varyKey, $this->request->server['HTTP_HOST']);
     }
@@ -417,7 +421,10 @@ class ControllerExtensionModuleLSCache extends Controller {
             return;
         }
 
-        if($this->lscache->esiEnabled){
+        if($this->lscache->esiEnabled) {
+            $this->lscache->lscInstance->checkPrivateCookie();
+            define('LSC_PRIVATE', true);
+            $this->checkVary();
             $purgeTag = 'esi_cart' ;
             $this->lscache->lscInstance->purgePrivate($purgeTag);
             $this->log();
@@ -453,7 +460,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         }
         
         $ajax = 'wishlist.add("-1");';
-        if (isset($this->lscache->setting['module_lscache_ajax_wishlist']) && ($this->lscache->setting['module_lscache_ajax_wishlist']=='0')) {
+        if ($this->lscache->esiEnabled && isset($this->lscache->setting['module_lscache_ajax_wishlist']) && ($this->lscache->setting['module_lscache_ajax_wishlist']=='0')) {
             $ajax = '';
         }
 
@@ -466,7 +473,6 @@ class ControllerExtensionModuleLSCache extends Controller {
         } else if(!empty($ajax)) {
             $output .='<script type="text/javascript">$(document).ready(function() { try {  ' . $ajax . ' } catch(err){console.log(err.message);}});</script>';
         }
-        
     }
     
     public function checkWishlist($route, &$args) {
@@ -488,14 +494,14 @@ class ControllerExtensionModuleLSCache extends Controller {
             }
     		$this->load->language('account/wishlist');
             $text_wishlist = $this->language->get('text_wishlist');
-            $json = array();
             if(!empty($text_wishlist)){
-    			$json['total'] = sprintf($text_wishlist, $total);
+                $text_wishlist = 'Wish List (%s)';
             }
+            $json = array();
 			$json['count'] =  $total;
+            $json['total'] = sprintf($text_wishlist, $total);
 
     		$this->response->setOutput(json_encode($json));
-            
             return json_encode($json);
         }
         
@@ -525,14 +531,16 @@ class ControllerExtensionModuleLSCache extends Controller {
         }
         
     }
-    
-    
+       
     public function editWishlist($route, &$args, &$output) {
         if(($this->lscache==null) || (!$this->lscache->cacheEnabled)){
             return;
         }
         
-        if($this->lscache->esiEnabled){
+        if(($this->lscache->esiEnabled) && isset($this->lscache->setting['module_lscache_ajax_wishlist']) && ($this->lscache->setting['module_lscache_ajax_wishlist']=='1')){
+            $this->lscache->lscInstance->checkPrivateCookie();
+            define('LSC_PRIVATE', true);
+            $this->checkVary();
             $purgeTag = 'esi_wishlist' ;
             $this->lscache->lscInstance->purgePrivate($purgeTag);
             $this->log();
@@ -542,12 +550,34 @@ class ControllerExtensionModuleLSCache extends Controller {
         
     }
 
+    public function editCompare($route, &$args, &$output) {
+        if(($this->lscache==null) || (!$this->lscache->cacheEnabled)){
+            return;
+        }
+        
+        if(($this->lscache->esiEnabled) && isset($this->lscache->setting['module_lscache_ajax_compare']) && ($this->lscache->setting['module_lscache_ajax_compare']=='1')){
+            $this->lscache->lscInstance->checkPrivateCookie();
+            define('LSC_PRIVATE', true);
+            $this->checkVary();
+            $purgeTag = 'esi_compare' ;
+            $this->lscache->lscInstance->purgePrivate($purgeTag);
+            $this->log();
+        } else {
+            $this->checkVary();
+        }
+        
+    }
+    
 
     public function editCurrency($route, &$args) {
         if (($this->lscache==null) || (!$this->lscache->cacheEnabled)) {
             return;
         }
         
+        if($this->lscache->esiEnabled){
+            $this->lscache->lscInstance->checkPrivateCookie();
+            define('LSC_PRIVATE', true);
+        }
         $this->session->data['currency'] = $this->request->post['code'];
         $this->checkVary();
     }
@@ -558,10 +588,14 @@ class ControllerExtensionModuleLSCache extends Controller {
             return;
         }
         
+        if($this->lscache->esiEnabled){
+            $this->lscache->lscInstance->checkPrivateCookie();
+            define('LSC_PRIVATE', true);
+        }
+        
         $this->session->data['language'] = $this->request->post['code'];
         $this->checkVary();       
     }
-    
     
 
     public function log($content = null, $logLevel = self::LOG_INFO) {
@@ -602,17 +636,26 @@ class ControllerExtensionModuleLSCache extends Controller {
 		$this->log->write($logInfo . $content);
         
     }
-
-
     
-    public function recache(){
 
-        if(!isset($this->session->data['previouseURL'])){
+    public function recache(){
+        echo 'start recache...' . PHP_EOL;
+        flush();
+        
+        if (php_sapi_name() == 'cli'){
+            $cli = true;
+        } else {
+            $cli = false;
+        }
+        
+        if($cli){}
+        else if(!isset($this->session->data['previouseURL'])){
             http_response_code(403);
             return;
+        } else {
+            $previouseURL = $this->session->data['previouseURL']; 
+            unset($this->session->data['previouseURL']);
         }
-        $previouseURL = $this->session->data['previouseURL']; 
-        unset($this->session->data['previouseURL']);
 
         $urls = array();
 
@@ -675,18 +718,20 @@ class ControllerExtensionModuleLSCache extends Controller {
         $urls[] = HTTP_SERVER;
         $urls[] = HTTP_SERVER . 'index.php';
         
-        $this->crawlUrls($urls);
+        $this->crawlUrls($urls, $cli);
 
         $data['success'] = $this->language->get('text_success');
-
-        echo '<script type="text/javascript">
-                   window.location = "' . str_replace('&amp;', '&', $previouseURL) . '"
-              </script>';
+        
+        if(!$cli){
+            echo '<script type="text/javascript">
+                       window.location = "' . str_replace('&amp;', '&', $previouseURL) . '"
+                  </script>';
+        }
         
     }
     
     
-    private function crawlUrls($urls) {
+    private function crawlUrls($urls, $cli=false) {
         set_time_limit(0);
 
         $count = count($urls);
@@ -698,70 +743,131 @@ class ControllerExtensionModuleLSCache extends Controller {
         $acceptCode = array(200, 201);
         $begin = microtime();
         $success = 0;
-        $current = 0;
+        $current = 1;
 
         ob_implicit_flush(TRUE);
         if (ob_get_contents()){
             ob_end_clean();
         }
         $this->log('Start Recache:');
-        echo '<h3>Recache may take several minutes</h3><br/>';
-        flush();
+        if(!$cli){
+            echo '<h4>Recache may take several minutes</h4><br/>';
+            flush();
+        } else {
+            echo 'Recache may take several minutes'. PHP_EOL;
+            flush();
+        }
         
         $printURL = isset($this->lscache->setting['module_lscache_log_level']) && ($this->lscache->setting['module_lscache_log_level']==self::LOG_DEBUG) ;
+        $recacheOption = isset($this->lscache->setting['module_lscache_recache_option']) ? $this->lscache->setting['module_lscache_recache_option'] : 0;
+        $cookies = array('', '_lscache_vary=session%3AloggedOut;lsc_private=e70f67d087a65a305e80267ba3bfbc97');
+
+		$this->load->model('localisation/language');
+		$languages = array();
+		$results = $this->model_localisation_language->getLanguages();
+		foreach ($results as $result) {
+			if ($result['status']) {
+				$languages[] = array(
+					'code' => $result['code'],
+					'name' => $result['name'],
+				);
+			}
+            if(($recacheOption=='1')  && ($result['code']!=$this->config->get('config_language'))){
+                $cookies[] = '_lscache_vary=language%3A' . $result['code'] . ';language=' . $result['code'] . ';lsc_private=e70f67d087a65a305e80267ba3bfbc97';
+            }
+		}
+        
+		$this->load->model('localisation/currency');
+		$currencies = array();
+		$results = $this->model_localisation_currency->getCurrencies();
+		foreach ($results as $result) {
+			if ($result['status']) {
+				$currencies[] = array(
+					'code'         => $result['code'],
+					'title'        => $result['title'],
+				);
+			}
+            
+            if(($recacheOption=='2')  && ($result['code']!=$this->config->get('config_currency'))){
+                $cookies[] = '_lscache_vary=currency%3A' . $result['code'] . ';currency=' . $result['code'] . ';lsc_private=e70f67d087a65a305e80267ba3bfbc97';
+            }
+		}
+        
+        if($recacheOption=='3'){
+            foreach($languages as $language){
+                foreach($currencies as $currency){
+                    if(($language['code']!=$this->config->get('config_language'))  && ($currency['code']!=$this->config->get('config_currency'))){
+                        $cookies[] = '_lscache_vary=language%3A' . $language['code'] .  ',currency%3A' . $currency['code'] .';language=' . $language['code'] . ';currency=' . $currency['code'] .  ';lsc_private=e70f67d087a65a305e80267ba3bfbc97';
+                    }
+                }
+            }
+        }
         
         foreach ($urls as $url) {
-            $this->log('crawl:'.$url);
-            $start = microtime();
-            $ch = curl_init();
-            $url = str_replace('&amp;', '&', $url);
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_HEADER, false);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-            curl_setopt($ch, CURLOPT_MAXREDIRS, 1);
-            curl_setopt($ch, CURLOPT_USERAGENT, 'lscache_runner');
-            $buffer = curl_exec($ch);
-            $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
+            foreach($cookies as $cookie){
+                $this->log('crawl:'.$url . '    cookie:' . $cookie);
+                $start = microtime();
+                $ch = curl_init();
+                $url = str_replace('&amp;', '&', $url);
+                curl_setopt($ch, CURLOPT_URL, $url);
+                curl_setopt($ch, CURLOPT_HEADER, false);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+                curl_setopt($ch, CURLOPT_MAXREDIRS, 1);
+                curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+                curl_setopt($ch, CURLOPT_USERAGENT, 'lscache_runner');
+                if($cookie!=''){
+                    curl_setopt($ch, CURLOPT_COOKIE, $cookie);
+                }
+                
+                $buffer = curl_exec($ch);
+                $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
 
-            if (in_array($httpcode, $acceptCode)) {
-                $success++;
-            } else if($httpcode==428){
-                echo 'Web Server crawler feature not enabled, please check <a href="https://www.litespeedtech.com/support/wiki/doku.php/litespeed_wiki:cache:lscwp:configuration:enabling_the_crawler" target="_blank">web server settings</a>';
-                $this->log('httpcode:'.$httpcode);
-                sleep(5);
-                break;
-            } else {
-                $this->log('httpcode:'.$httpcode);
+                if (in_array($httpcode, $acceptCode)) {
+                    $success++;
+                } else if($httpcode==428){
+                    if(!$cli){
+                        echo 'Web Server crawler feature not enabled, please check <a href="https://www.litespeedtech.com/support/wiki/doku.php/litespeed_wiki:cache:lscwp:configuration:enabling_the_crawler" target="_blank">web server settings</a>';
+                    } else {
+                        echo 'Web Server crawler feature not enabled, please check "https://www.litespeedtech.com/support/wiki/doku.php/litespeed_wiki:cache:lscwp:configuration:enabling_the_crawler"' .  PHP_EOL;
+                    }
+                    $this->log('httpcode:'.$httpcode);
+                    sleep(5);
+                    return;
+                } else {
+                    $this->log('httpcode:'.$httpcode);
+                }
+
+                if($cookie!=''){}
+                else if($cli){
+                    echo $current . '/' . $count . ' ' . $url . PHP_EOL;
+                } else if($printURL){
+                    echo 'url: ' . $url . ' httpcode: ' . $httpcode . '<br/>';
+                } else {
+                    echo '*';
+                }
+                
+                if (($current % 10 == 0) && (!$cli) && ($cookie=='')) {
+                    echo floor($current * 100 / $count) . '%<br/>';
+                }
+                flush();
+
+                $end = microtime();
+                $diff = $this->microtimeMinus($start, $end);
+                usleep(round($diff));
+
             }
-            
             $current++;
-
-            if($printURL){
-                echo 'url: ' . $url . ' httpcode: ' . $httpcode . '<br/>';
-            } else {
-                echo '*';
-            }
-            if ($current % 10 == 0) {
-                echo floor($current * 100 / $count) . '%<br/>';
-            }
-            flush();
-            
-            $end = microtime();
-            $diff = $this->microtimeMinus($start, $end);
-            usleep(round($diff));
-            
         }
 
         $totalTime = round($this->microtimeMinus($begin, microtime()) / 1000000);
 
         return $totalTime;  //script redirect to previous page
-        
     }
-    
+
     
     private function microtimeMinus($start, $end) {
         list($s_usec, $s_sec) = explode(" ", $start);
@@ -771,9 +877,34 @@ class ControllerExtensionModuleLSCache extends Controller {
     }
     
     protected function emptySession(){
-        $amount = isset($this->session->data['wishlist']) ? count($this->session->data['wishlist']) : 0  + $this->cart->countProducts() + (isset($this->session->data['vouchers']) ? count($this->session->data['vouchers']) : 0) ;
-        return $amount >0 ? false : true;
-    }   
+        if (isset($_COOKIE['lsc_private'])) {
+            return false;
+        }
+
+        if ($this->customer->isLogged()){
+            return false;
+        }
+        
+        if($this->session->data['currency']!=$this->config->get('config_currency')){
+            return false;
+        }
+        
+        if($this->session->data['language']!=$this->config->get('config_language')){
+            return false;
+        }
+        
+        return true;
+    }
     
+
+    protected function implode2(array $arr, $d1, $d2)
+    {
+        $arr1 = array();
+
+        foreach ($arr as $key => $val) {
+            $arr1[] = urlencode($key) . $d2 . urlencode($val);
+        }
+        return implode($d1, $arr1);
+    }
     
 }

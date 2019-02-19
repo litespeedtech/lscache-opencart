@@ -86,18 +86,17 @@
                   </div>
                 </div>
                     
-                    
                 <div class="form-group">
-                  <label class="col-sm-2 control-label" for="module_lscache_log_level"><?php echo $entry_loglevel ; ?></label>
+                  <label class="col-sm-2 control-label" for="module_lscache_recache_option"><?php echo $entry_recache_option ; ?></label>
                   <div class="col-sm-10">
-                    <select name="module_lscache_log_level" id="input-status" class="form-control">
-                      <option value="0" <?php echo $selectDisable->check($module_lscache_log_level, '0') ; ?>><?php echo $text_disabled ; ?></option>
-                      <option value="3" <?php echo $selectDisable->check($module_lscache_log_level, '3') ; ?>><?php echo $text_error ; ?></option>
-                      <option value="6" <?php echo $selectDisable->check($module_lscache_log_level, '6') ; ?>><?php echo $text_info ; ?></option>
-                      <option value="8" <?php echo $selectDisable->check($module_lscache_log_level, '8') ; ?>><?php echo $text_debug ; ?></option>
+                    <select name="module_lscache_recache_option" id="input-status" class="form-control">
+                        <option value="0" <?php echo $selectDisable->check($module_lscache_recache_option, '0') ; ?>><?php echo $text_recache_default ; ?></option>
+                      <option value="1" <?php echo $selectDisable->check($module_lscache_recache_option, '1') ; ?>><?php echo $text_recache_language ; ?></option>
+                      <option value="2" <?php echo $selectDisable->check($module_lscache_recache_option, '2') ; ?>><?php echo $text_recache_currency ; ?></option>
+                      <option value="3" <?php echo $selectDisable->check($module_lscache_recache_option, '3') ; ?>><?php echo $text_recache_combination ; ?></option>
                     </select>
                   </div>
-                </div>
+                </div>                    
 
                 <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_ajax_wishlist"><?php echo $entry_ajax_wishlist ; ?></label>
@@ -118,7 +117,19 @@
                     </select>
                   </div>
                 </div>
-                
+
+                <div class="form-group">
+                  <label class="col-sm-2 control-label" for="module_lscache_log_level"><?php echo $entry_loglevel ; ?></label>
+                  <div class="col-sm-10">
+                    <select name="module_lscache_log_level" id="input-status" class="form-control">
+                      <option value="0" <?php echo $selectDisable->check($module_lscache_log_level, '0') ; ?>><?php echo $text_disabled ; ?></option>
+                      <option value="3" <?php echo $selectDisable->check($module_lscache_log_level, '3') ; ?>><?php echo $text_error ; ?></option>
+                      <option value="6" <?php echo $selectDisable->check($module_lscache_log_level, '6') ; ?>><?php echo $text_info ; ?></option>
+                      <option value="8" <?php echo $selectDisable->check($module_lscache_log_level, '8') ; ?>><?php echo $text_debug ; ?></option>
+                    </select>
+                  </div>
+                </div>
+                                    
                 
             </div>
                     
@@ -241,6 +252,7 @@
                               <option value="" selected><?php echo $text_default ; ?></option>
                               <option value="esi_cart">esi_cart</option>
                               <option value="esi_wishlist">esi_wishlist</option>
+                              <option value="esi_compare">esi_compare</option>
                             </select>
                           </td>
                           <td class="text-right">

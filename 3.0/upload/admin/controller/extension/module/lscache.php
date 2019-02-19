@@ -255,6 +255,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         $this->model_setting_event->addEvent('lscache_cart_edit', 'catalog/controller/checkout/cart/edit/after', 'extension/module/lscache/editCart');
         $this->model_setting_event->addEvent('lscache_cart_remove', 'catalog/controller/checkout/cart/remove/after', 'extension/module/lscache/editCart');
         $this->model_setting_event->addEvent('lscache_compare_check', 'catalog/controller/product/compare/add/before', 'extension/module/lscache/checkCompare');
+        $this->model_setting_event->addEvent('lscache_compare_edit', 'catalog/controller/product/compare/add/after', 'extension/module/lscache/editCompare');
         $this->model_setting_event->addEvent('lscache_wishlist_check', 'catalog/controller/account/wishlist/add/before', 'extension/module/lscache/checkWishlist');
         $this->model_setting_event->addEvent('lscache_wishlist_edit', 'catalog/controller/account/wishlist/add/after', 'extension/module/lscache/editWishlist');
         $this->model_setting_event->addEvent('lscache_wishlist_display', 'catalog/controller/account/wishlist/after', 'extension/module/lscache/editWishlist');
@@ -279,6 +280,19 @@ class ControllerExtensionModuleLSCache extends Controller {
         } else if (function_exists('phpopcache_reset')){
             phpopcache_reset();
         }
+        
+        //clear template cache file
+        try{
+            $template = new Template($this->registry->get('config')->get('template_engine'));
+            $loader = new \Twig_Loader_Filesystem(DIR_TEMPLATE);
+            $twig = new \Twig_Environment($loader);
+            $name =  'extension/module/lscache.twig';
+            $cls = $twig->getTemplateClass($name);
+            $cache = new Twig_Cache_Filesystem(DIR_CACHE);
+            $key = $cache->generateKey($name, $cls);
+            unlink($key);
+        } catch (Exception $ex){
+        }        
         
 	}
     
@@ -319,12 +333,13 @@ class ControllerExtensionModuleLSCache extends Controller {
 		$this->model_setting_event->deleteEventByCode('lscache_wishlist_edit');
 		$this->model_setting_event->deleteEventByCode('lscache_wishlist_check');
 		$this->model_setting_event->deleteEventByCode('lscache_compare_check');
+		$this->model_setting_event->deleteEventByCode('lscache_compare_edit');
 		$this->model_setting_event->deleteEventByCode('lscache_user_forgotten');
 		$this->model_setting_event->deleteEventByCode('lscache_user_login');
 		$this->model_setting_event->deleteEventByCode('lscache_user_logout');
 		$this->model_setting_event->deleteEventByCode('lscache_currency_change');
 		$this->model_setting_event->deleteEventByCode('lscache_language_change');
-                
+      
         $this->clearHtaccess();
         $lscInstance = $this->lscacheInit();
         if($lscInstance){
