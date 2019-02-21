@@ -73,7 +73,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         $this->lscache->lscInstance = new LiteSpeedCacheCore();
         $this->lscache->lscInstance->setHeaderFunction($this->response, 'addHeader');
         
-        if ((isset($_SERVER['HTTP_USER_AGENT'])) && ($_SERVER['HTTP_USER_AGENT'] == 'lscache_runner')){
+        if ((isset($_SERVER['HTTP_USER_AGENT'])) && (($_SERVER['HTTP_USER_AGENT'] == 'lscache_runner') || ($_SERVER['HTTP_USER_AGENT'] == 'lscache_walker'))){
             $recache = 0;
             if (isset($this->lscache->setting['recache_options']))  {
                 $recache = $this->lscache->setting['recache_options'];
@@ -817,7 +817,11 @@ class ControllerExtensionModuleLSCache extends Controller {
                 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
                 curl_setopt($ch, CURLOPT_MAXREDIRS, 1);
                 curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-                curl_setopt($ch, CURLOPT_USERAGENT, 'lscache_runner');
+                if($cli){
+                    curl_setopt($ch, CURLOPT_USERAGENT, 'lscache_walker');
+                } else {
+                    curl_setopt($ch, CURLOPT_USERAGENT, 'lscache_runner');
+                }
                 if($cookie!=''){
                     curl_setopt($ch, CURLOPT_COOKIE, $cookie);
                 }
@@ -868,6 +872,39 @@ class ControllerExtensionModuleLSCache extends Controller {
         return $totalTime;  //script redirect to previous page
     }
 
+    public function purgeAll(){
+        if (php_sapi_name() != 'cli'){
+            http_response_code(403);
+            return;
+        }
+        $url= $this->url->link('extension/module/lscache/purgeAllAction');
+        $content = $this->file_get_contents_curl($url);
+        echo $content;
+    }
+    
+    
+    public function purgeAllAction()
+    {
+        if (($this->lscache==null) || (!$this->lscache->cacheEnabled)) {
+            http_response_code(403);
+            return;
+        }
+
+        $visitorIP =  $_SERVER['REMOTE_ADDR'];
+        $serverIP = $_SERVER['SERVER_ADDR'];
+        
+        if(($visitorIP=="127.0.0.1") || ($serverIP=="127.0.0.1") || ($visitorIP==$serverIP)){
+            $lscInstance = new LiteSpeedCacheCore();
+            $lscInstance->purgeAllPublic();
+            echo 'All LiteSpeed Cache has been purged' . PHP_EOL;
+            flush();
+        } else {
+            echo 'Operation not allowed from this device'  . PHP_EOL;
+            flush();
+            http_response_code(403);
+        }
+    }
+    
     
     private function microtimeMinus($start, $end) {
         list($s_usec, $s_sec) = explode(" ", $start);
@@ -905,6 +942,21 @@ class ControllerExtensionModuleLSCache extends Controller {
             $arr1[] = urlencode($key) . $d2 . urlencode($val);
         }
         return implode($d1, $arr1);
+    }
+ 
+    protected function file_get_contents_curl($url) {
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_AUTOREFERER, TRUE);
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);       
+
+        $data = curl_exec($ch);
+        curl_close($ch);
+
+        return $data;
     }
     
 }

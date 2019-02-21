@@ -18,5 +18,8 @@ This version of LiteSpeed Cache requires OpenCart 2.3 or later and either LiteSp
 ## Installing
 Download a specific version of the LiteSpeed Cache extension package from the GitHub **package** folder, or run `buildPackage.sh` to generate the latest package from the latest souce code in GitHub.
 
+## Cli Command
+See README.md in Github **oc_cli** folder for more information.
+
 See https://www.litespeedtech.com/support/wiki/doku.php/litespeed_wiki:cache:lscoc for more information.
 

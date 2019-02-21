@@ -13,9 +13,10 @@ Just copy everything from the /upload directory to your OpenCart root directory.
 How it works
 --------------
 oc_cli introduces a new file in your OpenCart root directory: `oc_cli.php`. All you need to do is run this file from your command line with the appropriate parameters.
-For Example, LiteSpeed Cache Plugin have Recache feature, it can be called as cli command:
+After v1.2.0, LiteSpeed Cache Plugin support the following cli commands:
 ```
 php oc_cli.php catalog extension/module/lscache/recache
+php oc_cli.php catalog extension/module/lscache/purgeAll
 ```
 
 
