@@ -85,7 +85,17 @@
                     </select>
                   </div>
                 </div>
-                    
+
+                <div class="form-group">
+                  <label class="col-sm-2 control-label" for="module_lscache_vary_mobile"><span data-toggle="tooltip" title="<?php echo $help_vary_mobile ; ?>"><?php echo $entry_vary_mobile ; ?></span></label>
+                  <div class="col-sm-10">
+                    <select name="module_lscache_vary_mobile" id="input-status" class="form-control">
+                      <option value="1" <?php echo $selectDisable->check($module_lscache_vary_mobile, '1') ; ?>><?php echo $text_enabled ; ?></option>
+                      <option value="0" <?php echo $selectDisable->check($module_lscache_vary_mobile, '0') ; ?>><?php echo $text_disabled ; ?></option>
+                    </select>
+                  </div>
+                </div>
+                
                 <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_recache_option"><?php echo $entry_recache_option ; ?></label>
                   <div class="col-sm-10">

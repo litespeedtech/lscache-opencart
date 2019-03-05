@@ -320,6 +320,11 @@ class ControllerExtensionModuleLSCache extends Controller {
             $vary['session'] = 'loggedIn';
         }
         
+        
+        if ($this->checkMobile() && isset($this->lscache->setting['module_lscache_vary_mobile']) && ($this->lscache->setting['module_lscache_vary_mobile']=='1'))  {
+            $vary['device'] = 'mobile';
+        }
+        
         if($this->session->data['currency']!=$this->config->get('config_currency')){
             $vary['currency'] = $this->session->data['currency'];
         }
@@ -956,6 +961,12 @@ class ControllerExtensionModuleLSCache extends Controller {
 
         return $data;
     }
+
     
+    protected function checkMobile(){
+        include_once(DIR_SYSTEM . 'library/Mobile_Detect/Mobile_Detect.php');
+        $detect = new Mobile_Detect();
+        return $detect->isMobile();
+    }
     
 }

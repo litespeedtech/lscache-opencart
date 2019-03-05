@@ -48,7 +48,7 @@ $_['help_public_ttl']     = 'LiteSpeed page cache lifetime in seconds';
 $_['help_login_cachable']     = 'If disabled, all web page cache will not be available for logged-in users';
 $_['help_page_login_cachable']     = 'Page Cache for logged-in users';
 $_['help_page_logout_cachable']     = 'Page Cache for logged-out users';
-$_['help_vary_mobile']     = 'Create a separate cached copy of each page for mobile devices';
+$_['help_vary_mobile']     = 'Create a separate cached copy of each page for mobile devices, please check .htaccess file and comment/uncomment mobile view part according to this option';
 $_['help_vary_login']     = 'Create a separate cached copy of each page for Logged-in Users';
 
 $_['help_purge_system_cache']     = 'Purge all Opencart system cache after purge all LiteSpeed Cache';

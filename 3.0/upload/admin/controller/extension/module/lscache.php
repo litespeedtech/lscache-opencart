@@ -73,6 +73,21 @@ class ControllerExtensionModuleLSCache extends Controller {
                     $data['success'] .=  '<br><i class="fa fa-check-circle"></i> ' .  $this->language->get('text_purgeSuccess');
                 }
             }
+            
+            if(!isset($oldSetting["module_lscache_vary_mobile"])){
+                $oldSetting["module_lscache_vary_mobile"] = '0';
+            }
+            if($oldSetting["module_lscache_vary_mobile"]!= $this->request->post["module_lscache_vary_mobile"]){
+                if($this->request->post["module_lscache_vary_mobile"]=='1'){
+                    $this->initHtaccess(true);
+                } else {
+                    $this->initHtaccess(false);
+                }
+                if($lscInstance){
+                    $lscInstance->purgeAllPublic();
+                    $data['success'] .=  '<br><i class="fa fa-check-circle"></i> ' .  $this->language->get('text_purgeSuccess');
+                }
+            }
         }
         else if( ($action == 'purgeAll') && $lscInstance){
             $data['success'] = $this->language->get('text_purgeSuccess');
@@ -514,12 +529,21 @@ class ControllerExtensionModuleLSCache extends Controller {
     }
     
     
-    private function initHtaccess() {
+    private function initHtaccess($mobile = false) {
         $htaccess = realpath(DIR_APPLICATION . '/../') . '/.htaccess';
 
         $directives = '### LITESPEED_CACHE_START - Do not remove this line' . PHP_EOL;
         $directives .= '<IfModule LiteSpeed>' . PHP_EOL;
         $directives .= 'CacheLookup on' . PHP_EOL;
+        $directives .= '## Uncomment the following directives if you has a separate mobile view' . PHP_EOL;
+        if($mobile){
+            $directives .= 'RewriteEngine On' . PHP_EOL;
+            $directives .= 'RewriteCond %{HTTP_USER_AGENT} Mobile|Android|Silk/|Kindle|BlackBerry|Opera\ Mini|Opera\ Mobi [NC] RewriteRule .* - [E=Cache-Control:vary=ismobile]' . PHP_EOL;
+        }
+        else{
+            $directives .= '##RewriteEngine On' . PHP_EOL;
+            $directives .= '##RewriteCond %{HTTP_USER_AGENT} Mobile|Android|Silk/|Kindle|BlackBerry|Opera\ Mini|Opera\ Mobi [NC] RewriteRule .* - [E=Cache-Control:vary=ismobile]' . PHP_EOL;
+        }
         $directives .= '</IfModule>' . PHP_EOL;
         $directives .= '### LITESPEED_CACHE_END';
 
