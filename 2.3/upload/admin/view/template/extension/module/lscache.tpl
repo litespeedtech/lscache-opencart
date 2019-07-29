@@ -128,6 +128,18 @@
                   </div>
                 </div>
 
+                
+                <div class="form-group">
+                  <label class="col-sm-2 control-label" for="module_lscache_ajax_shopcart"><?php echo $entry_ajax_shopcart ; ?></label>
+                  <div class="col-sm-10">
+                    <select name="module_lscache_ajax_shopcart" id="input-status" class="form-control">
+                      <option value="1" <?php echo $selectDisable->check($module_lscache_ajax_shopcart, '1') ; ?>><?php echo $text_enabled ; ?></option>
+                      <option value="0" <?php echo $selectDisable->check($module_lscache_ajax_shopcart, '0') ; ?>><?php echo $text_disabled ; ?></option>
+                    </select>
+                  </div>
+                </div>
+                
+                
                 <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_log_level"><?php echo $entry_loglevel ; ?></label>
                   <div class="col-sm-10">

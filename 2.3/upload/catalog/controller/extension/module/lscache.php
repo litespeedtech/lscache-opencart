@@ -470,7 +470,8 @@ class ControllerExtensionModuleLSCache extends Controller {
             $ajax .= 'compare.add("-1");';
         }
 
-        if(!$this->lscache->esiEnabled){
+
+        if(!$this->lscache->esiEnabled  ||  (isset($this->lscache->setting['module_lscache_ajax_shopcart']) && ($this->lscache->setting['module_lscache_ajax_shopcart']=='1'))){
             $output .='<script type="text/javascript">$(document).ready(function() {try{ ' . $ajax . ' cart.remove("-1");} catch(err){console.log(err.message);}});</script>';
         } else if(!empty($ajax)) {
             $output .='<script type="text/javascript">$(document).ready(function() { try {  ' . $ajax . ' } catch(err){console.log(err.message);}});</script>';
