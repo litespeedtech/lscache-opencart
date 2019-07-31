@@ -429,7 +429,7 @@ class ControllerExtensionModuleLSCache extends Controller {
             $this->lscache->lscInstance->checkPrivateCookie();
             define('LSC_PRIVATE', true);
             $this->checkVary();
-            $purgeTag = 'esi_cart' ;
+            $purgeTag = 'esi_common_header' ;
             $this->lscache->lscInstance->purgePrivate($purgeTag);
             $this->log();
         } else {
@@ -472,7 +472,7 @@ class ControllerExtensionModuleLSCache extends Controller {
             $ajax .= 'compare.add("-1");';
         }
 
-        if(!$this->lscache->esiEnabled){
+        if(!$this->lscache->esiEnabled  ||  (isset($this->lscache->setting['module_lscache_ajax_shopcart']) && ($this->lscache->setting['module_lscache_ajax_shopcart']=='1'))){
             $output .='<script type="text/javascript">$(document).ready(function() {try{ ' . $ajax . ' cart.remove("-1");} catch(err){console.log(err.message);}});</script>';
         } else if(!empty($ajax)) {
             $output .='<script type="text/javascript">$(document).ready(function() { try {  ' . $ajax . ' } catch(err){console.log(err.message);}});</script>';
@@ -545,7 +545,7 @@ class ControllerExtensionModuleLSCache extends Controller {
             $this->lscache->lscInstance->checkPrivateCookie();
             define('LSC_PRIVATE', true);
             $this->checkVary();
-            $purgeTag = 'esi_wishlist' ;
+            $purgeTag = 'esi_common_header' ;
             $this->lscache->lscInstance->purgePrivate($purgeTag);
             $this->log();
         } else {
@@ -563,7 +563,7 @@ class ControllerExtensionModuleLSCache extends Controller {
             $this->lscache->lscInstance->checkPrivateCookie();
             define('LSC_PRIVATE', true);
             $this->checkVary();
-            $purgeTag = 'esi_compare' ;
+            $purgeTag = 'esi_common_header' ;
             $this->lscache->lscInstance->purgePrivate($purgeTag);
             $this->log();
         } else {

@@ -41,6 +41,7 @@ $_['entry_vary_login']     = 'Seperate View for Logged-in Users';
 $_['entry_purge_system_cache']     = 'Purge System Cache';
 $_['entry_ajax_wishlist']     = 'Ajax Load Wishlist';
 $_['entry_ajax_compare']     = 'Ajax Load Compare';
+$_['entry_ajax_shopcart']     = 'Ajax Load Shopcart';
 $_['entry_recache_option']     = 'Rebuild Cache Options';
 
 
