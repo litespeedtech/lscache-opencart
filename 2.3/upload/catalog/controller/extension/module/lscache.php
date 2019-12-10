@@ -329,7 +329,7 @@ class ControllerExtensionModuleLSCache extends Controller {
             $vary['currency'] = $this->session->data['currency'];
         }
         
-        if($this->session->data['language']!=$this->config->get('config_language')){
+        if(isset($this->session->data['language']) && ($this->session->data['language']!=$this->config->get('config_language'))){
             $vary['language'] = $this->session->data['language'];
         }
         
