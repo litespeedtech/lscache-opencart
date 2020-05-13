@@ -61,6 +61,8 @@ class ControllerExtensionModuleLSCache extends Controller {
             !defined('LITESPEED_ALLOWED') && define('LITESPEED_ALLOWED', true);
             $this->lscache->cacheEnabled = true;
         } else {
+            $this->log->write('server type:' . LITESPEED_SERVER_TYPE);
+            $this->log->write('lscache not enabled');
             return;
         }
 
@@ -320,9 +322,8 @@ class ControllerExtensionModuleLSCache extends Controller {
             $vary['session'] = 'loggedIn';
         }
         
-        
-        if ($this->checkMobile() && isset($this->lscache->setting['module_lscache_vary_mobile']) && ($this->lscache->setting['module_lscache_vary_mobile']=='1'))  {
-            $vary['device'] = 'mobile';
+        if (($device=$this->checkMobile()) && isset($this->lscache->setting['module_lscache_vary_mobile']) && ($this->lscache->setting['module_lscache_vary_mobile']=='1'))  {
+            $vary['device'] = $device;
         }
         
         if($this->session->data['currency']!=$this->config->get('config_currency')){
@@ -967,7 +968,13 @@ class ControllerExtensionModuleLSCache extends Controller {
     protected function checkMobile(){
         include_once(DIR_SYSTEM . 'library/Mobile_Detect/Mobile_Detect.php');
         $detect = new Mobile_Detect();
-        return $detect->isMobile();
+        if($detect->isTablet()){
+            return 'tablet';
+        } else if($detect->isMobile()){
+            return 'mobile';
+        } else {
+            return false;
+        }
     }
     
 }
