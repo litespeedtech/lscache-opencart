@@ -354,7 +354,7 @@ class ControllerExtensionModuleLSCache extends Controller {
     
 
     public function addProduct($route, &$args, &$output) {
-        $lscInstance = $this->lscacheInit();
+        $lscInstance = $this->lscacheInit(true);
         if($lscInstance){
             $purgeTag = 'Product, Category';
             $data = $args[0];
@@ -374,7 +374,7 @@ class ControllerExtensionModuleLSCache extends Controller {
 
     
     public function editProduct($route, &$args, &$output) {
-        $lscInstance = $this->lscacheInit();
+        $lscInstance = $this->lscacheInit(true);
         if($lscInstance){
             $purgeTag = 'Product, Category,P_' . $args[0];
             $this->load->model('catalog/product');
@@ -395,7 +395,7 @@ class ControllerExtensionModuleLSCache extends Controller {
 
     
     public function addCategory($route, &$args, &$output) {
-        $lscInstance = $this->lscacheInit();
+        $lscInstance = $this->lscacheInit(true);
         if($lscInstance){
             $purgeTag = 'Category';
             $lscInstance->purgePublic($purgeTag);
@@ -409,7 +409,7 @@ class ControllerExtensionModuleLSCache extends Controller {
     
     
     public function editCategory($route, &$args, &$output) {
-        $lscInstance = $this->lscacheInit();
+        $lscInstance = $this->lscacheInit(true);
         if($lscInstance){
             $purgeTag = 'Category,C_' . $args[0];
             $lscInstance->purgePublic($purgeTag);
@@ -423,7 +423,7 @@ class ControllerExtensionModuleLSCache extends Controller {
     
 
     public function addInformation($route, &$args, &$output) {
-        $lscInstance = $this->lscacheInit();
+        $lscInstance = $this->lscacheInit(true);
         if($lscInstance){
             $purgeTag = 'Information';
             $lscInstance->purgePublic($purgeTag);
@@ -437,7 +437,7 @@ class ControllerExtensionModuleLSCache extends Controller {
     
     
     public function editInformation($route, &$args, &$output) {
-        $lscInstance = $this->lscacheInit();
+        $lscInstance = $this->lscacheInit(true);
         if($lscInstance){
             $purgeTag = 'Information,I_' . $args[0];
             $lscInstance->purgePublic($purgeTag);
@@ -451,7 +451,7 @@ class ControllerExtensionModuleLSCache extends Controller {
 
     
     public function addManufacturer($route, &$args, &$output) {
-        $lscInstance = $this->lscacheInit();
+        $lscInstance = $this->lscacheInit(true);
         if($lscInstance){
             $purgeTag = 'Manufacturer';
             $lscInstance->purgePublic($purgeTag);
@@ -465,7 +465,7 @@ class ControllerExtensionModuleLSCache extends Controller {
 
     
     public function editManufacturer($route, &$args, &$output) {
-        $lscInstance = $this->lscacheInit();
+        $lscInstance = $this->lscacheInit(true);
         if($lscInstance){
             $purgeTag = 'Manufacturer,M_' . $args[0];
             $lscInstance->purgePublic($purgeTag);
