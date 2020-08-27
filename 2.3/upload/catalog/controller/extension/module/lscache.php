@@ -326,6 +326,11 @@ class ControllerExtensionModuleLSCache extends Controller {
             $vary['device'] = $device;
         }
         
+        if ($isset($this->lscache->setting['module_lscache_vary_safari']) && ($this->lscache->setting['module_lscache_vary_safari']=='1'))  {
+            $vary['browser'] = 'safari';
+        }
+
+        
         if($this->session->data['currency']!=$this->config->get('config_currency')){
             $vary['currency'] = $this->session->data['currency'];
         }
@@ -975,6 +980,13 @@ class ControllerExtensionModuleLSCache extends Controller {
         } else {
             return false;
         }
+    }
+    
+    protected function checkSafari() {
+        if (strpos($_SERVER['HTTP_USER_AGENT'], 'AppleWebKit') !== FALSE) {
+            return TRUE;
+        }
+        return FALSE;
     }
     
 }

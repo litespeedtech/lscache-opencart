@@ -532,6 +532,11 @@ class ControllerExtensionModuleLSCache extends Controller {
             $directives .= '##RewriteEngine On' . PHP_EOL;
             $directives .= '##RewriteCond %{HTTP_USER_AGENT} "iPhone|iPod|BlackBerry|Palm|Googlebot-Mobile|Mobile|mobile|mobi|Windows Mobile|Safari Mobile|Android|Opera Mini" [NC] RewriteRule .* - [E=Cache-Control:vary=ismobile]' . PHP_EOL;
         }
+
+        $directives .= '## Uncomment the following directives if you has a separate Safari browser view' . PHP_EOL;
+        $directives .= '##RewriteEngine On' . PHP_EOL;
+        $directives .= '##RewriteCond %{HTTP_USER_AGENT} "AppleWebKit" [NC] RewriteRule .* - [E=Cache-Control:vary=isSafari]' . PHP_EOL;
+
         $directives .= '</IfModule>' . PHP_EOL;
         $directives .= '### LITESPEED_CACHE_END';
 

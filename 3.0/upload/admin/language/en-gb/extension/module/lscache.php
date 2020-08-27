@@ -37,6 +37,7 @@ $_['entry_public_ttl']     = 'LiteSpeed Cache TTL (seconds)';
 $_['entry_loglevel']     = 'Logging Level';
 $_['entry_login_cachable']     = 'Page Cache for Logged-in Users';
 $_['entry_vary_mobile']     = 'Separate View for Mobile Device';
+$_['entry_vary_safari']     = 'Separate View for Safari Browser';
 $_['entry_vary_login']     = 'Seperate View for Logged-in Users';
 $_['entry_purge_system_cache']     = 'Purge System Cache';
 $_['entry_ajax_wishlist']     = 'Ajax Load Wishlist';
@@ -50,6 +51,7 @@ $_['help_login_cachable']     = 'If disabled, all web page cache will not be ava
 $_['help_page_login_cachable']     = 'Page Cache for logged-in users';
 $_['help_page_logout_cachable']     = 'Page Cache for logged-out users';
 $_['help_vary_mobile']     = 'Create a separate cached copy of each page for mobile devices, please check .htaccess file and comment/uncomment mobile view part according to this option';
+$_['help_vary_safari']     = 'Create a separate cached copy of each page for Safari browser, please check .htaccess file and comment/uncomment Safari view part according to this option';
 $_['help_vary_login']     = 'Create a separate cached copy of each page for Logged-in Users';
 
 $_['help_purge_system_cache']     = 'Purge all Opencart system cache after purge all LiteSpeed Cache';

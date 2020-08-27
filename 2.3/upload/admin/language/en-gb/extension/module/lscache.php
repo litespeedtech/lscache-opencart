@@ -30,7 +30,7 @@ $_['text_recache_language'] = 'Rebuild cache for all languages and only default 
 $_['text_recache_currency'] = 'Rebuild cache for all currencies and only default language';
 $_['text_recache_combination'] = 'Rebuild cache for all language and currency cobinations';
 
-
+$_['entry_vary_safari']     = 'Separate View for Safari Browser';
 $_['entry_status']     = 'LiteSpeed Cache Status';
 $_['entry_esi']     = 'LiteSpeed ESI Feature';
 $_['entry_public_ttl']     = 'LiteSpeed Cache TTL (seconds)';
@@ -44,7 +44,7 @@ $_['entry_ajax_compare']     = 'Ajax Load Compare';
 $_['entry_ajax_shopcart']     = 'Ajax Load Shopcart';
 $_['entry_recache_option']     = 'Rebuild Cache Options';
 
-
+$_['help_vary_safari']     = 'Create a separate cached copy of each page for Safari browser, please check .htaccess file and comment/uncomment Safari view part according to this option';
 $_['help_public_ttl']     = 'LiteSpeed page cache lifetime in seconds';
 $_['help_login_cachable']     = 'If disabled, all web page cache will not be available for logged-in users';
 $_['help_page_login_cachable']     = 'Page Cache for logged-in users';
