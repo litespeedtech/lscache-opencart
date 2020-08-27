@@ -535,7 +535,9 @@ class ControllerExtensionModuleLSCache extends Controller {
 
         $directives .= '## Uncomment the following directives if you has a separate Safari browser view' . PHP_EOL;
         $directives .= '##RewriteEngine On' . PHP_EOL;
-        $directives .= '##RewriteCond %{HTTP_USER_AGENT} "AppleWebKit" [NC] RewriteRule .* - [E=Cache-Control:vary=isSafari]' . PHP_EOL;
+        $directives .= '##RewriteCond %{HTTP_USER_AGENT} Safari' . PHP_EOL;
+        $directives .= '##RewriteCond %{HTTP_USER_AGENT} !Chrome' . PHP_EOL;
+        $directives .= '##RewriteRule .* - [E=Cache-Control:vary=isSafari]' . PHP_EOL;
 
         $directives .= '</IfModule>' . PHP_EOL;
         $directives .= '### LITESPEED_CACHE_END';
