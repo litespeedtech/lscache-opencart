@@ -92,7 +92,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         if($route!="extension/module/lscache/renderESI"){
             $this->onAfterRoute($route, $args);
         }
-        
+       
     }
 
     
@@ -131,7 +131,7 @@ class ControllerExtensionModuleLSCache extends Controller {
             foreach ($esiModules as $key => $module){
                 if($module['route']!=$route){
                     $route = $module['route'];
-                    $this->event->register('controller/'. $route . '/before', new Action('extension/module/lscache/onAfterRenderModule'));
+                    $this->event->register('controller/'. $route . '/after', new Action('extension/module/lscache/onAfterRenderModule'));
                 }
             }
             $this->event->register('model/setting/module/getModule', new Action('extension/module/lscache/onAfterGetModule'));
@@ -140,7 +140,7 @@ class ControllerExtensionModuleLSCache extends Controller {
     }
 
     
-    public function onAfterRenderModule($route, &$args){
+    public function onAfterRenderModule($route, &$args, &$output){
         if(($this->lscache==null) || (!$this->lscache->pageCachable)){
             return;
         }
@@ -164,20 +164,50 @@ class ControllerExtensionModuleLSCache extends Controller {
         }
         
         if ($esiType == 3) {
-            $output = '<esi:include src="' . $link . '" cache-control="public"/>';
-            $this->lscache->esiOn = true;
+            $esiBlock = '<esi:include src="' . $link . '" cache-control="public"/>';
         } else if ($esiType == 2) {
             if($this->emptySession()){ return;}
-            $output = '<esi:include src="' . $link . '" cache-control="private"/>';
-            $this->lscache->esiOn = true;
+            $esiBlock = '<esi:include src="' . $link . '" cache-control="private"/>';
         } else if ($esiType == 1) {
-            $output = '<esi:include src="' . $link . '" cache-control="no-cache"/>';
-            $this->lscache->esiOn = true;
+            $esiBlock = '<esi:include src="' . $link . '" cache-control="no-cache"/>';
         }
-        return $output;
+        $this->lscache->esiOn = true;
+        
+        $output = $this->setESIBlock($output, $route, $esiBlock, '');
         
     }
+    
+    protected function setESIBlock($output, $route, $esiBlock, $divElement){
+        if($route=='common/header'){
+            $bodyElement = stripos($output, '<body>');            
+            if($bodyElement===false){
+                return $esiBlock;
+            }
+            
+            return substr($output, 0, $bodyElement) . $esiBlock;
+        }
 
+        //for later usage only, currently no demands
+        if(!empty($divElement)){ }
+        
+        return $esiBlock;        
+    }
+        
+    protected function getESIBlock($content, $route, $divElement){
+        if($route=='common/header'){
+            $bodyElement = stripos($content, '<body>');
+            if($bodyElement===false){
+                return $content;
+            }
+            return substr($content, $bodyElement); 
+        }
+
+        //for later usage only, currently no demands
+        if(!empty($divElement)){ }
+        
+        return $content;
+    }
+    
     public function onAfterRender($route, &$args, &$output){
 
         if(($this->lscache==null) || (!$this->lscache->pageCachable)){
@@ -264,6 +294,9 @@ class ControllerExtensionModuleLSCache extends Controller {
                 return;
             }
         }
+
+        $content = $this->getESIBlock($content, $esiRoute, '');
+        
         $this->response->setOutput($content);
         
         $module = $esiModules[$esiKey];
