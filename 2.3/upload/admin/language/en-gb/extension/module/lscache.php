@@ -29,6 +29,7 @@ $_['text_recache_default'] = 'Rebuild cache for only default language and defaul
 $_['text_recache_language'] = 'Rebuild cache for all languages and only default currency';
 $_['text_recache_currency'] = 'Rebuild cache for all currencies and only default language';
 $_['text_recache_combination'] = 'Rebuild cache for all language and currency cobinations';
+$_['text_commentHtaccess'] = 'Please comment/uncomment related .htaccess directives inside &lt;IfModule LiteSpeed&gt;';
 
 $_['entry_vary_safari']     = 'Separate View for Safari Browser';
 $_['entry_status']     = 'LiteSpeed Cache Status';

@@ -280,6 +280,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         }
         
         $content = "";
+        unset($this->request->get['route']);
         if (empty($module_id)) {
             $content = $this->load->controller($esiRoute);
         }

@@ -243,17 +243,18 @@ class ModelExtensionModuleLSCache extends Model {
         $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'page_journal3_blog_post', '{\"name\":\"Journal3 Blog Post\",\"route\":\"journal3\\/blog\",\"cacheLogout\":\"1\",\"cacheLogin\":\"1\", \"default\":\"1\"}', '1')" ) ;
         $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'page_journal3_blog_feed', '{\"name\":\"Journal3 Blog Feed\",\"route\":\"journal3\\/feed\",\"cacheLogout\":\"1\",\"cacheLogin\":\"1\", \"default\":\"1\"}', '1')" ) ;
         $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'esi_common_header', '{\"name\":\"header\",\"route\":\"common\\/header\",\"esi_type\":\"2\",\"esi_ttl\":\"1800\",\"esi_tag\":\"esi_common_header\", \"default\":\"1\"}', '1')") ;
-        $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'esi_common_footer', '{\"name\":\"footer\",\"route\":\"common\\/footer\",\"esi_type\":\"0\",\"esi_ttl\":\"360000\",\"esi_tag\":\"\", \"default\":\"1\"}', '1')") ;
+        $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'esi_common_footer', '{\"name\":\"footer\",\"route\":\"common\\/footer\",\"esi_type\":\"0\",\"esi_ttl\":\"360000\",\"esi_tag\":\"esi_common_footer\", \"default\":\"1\"}', '1')") ;
         
         $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'module_lscache_status', '1', '0')") ;
         $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'module_lscache_public_ttl', '1200000', '0')") ;
         $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'module_lscache_esi', '1', '0')") ;
         $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'module_lscache_log_level', '0', '0')") ;
         $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'module_lscache_recache_option', '0', '0')") ;
-        $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'module_lscache_ajax_wishlist', '1', '0')") ;
+        $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'module_lscache_ajax_wishlist', '0', '0')") ;
         $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'module_lscache_ajax_compare', '0', '0')") ;
         $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'module_lscache_vary_login', '0', '0')") ;
         $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'module_lscache_vary_mobile', '0', '0')") ;
+        $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'module_lscache_vary_safari', '0', '0')") ;
 
         $this->cache->delete('lscache_pages');
         $this->cache->delete('lscache_modules');

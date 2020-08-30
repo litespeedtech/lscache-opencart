@@ -234,7 +234,6 @@ class ControllerExtensionModuleLSCache extends Controller {
         $this->lscache->lscInstance->setPublicTTL($cacheTimeout);
         $this->lscache->lscInstance->cachePublic($this->lscache->cacheTags, $this->lscache->esiOn);
         $this->log();
-
         
     }
     
@@ -280,6 +279,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         }
         
         $content = "";
+        unset($this->request->get['route']);
         if (empty($module_id)) {
             $content = $this->load->controller($esiRoute);
         }

@@ -78,13 +78,15 @@ class ControllerExtensionModuleLSCache extends Controller {
             if(!isset($oldSetting["module_lscache_vary_mobile"])){
                 $oldSetting["module_lscache_vary_mobile"] = '0';
             }
-            if($oldSetting["module_lscache_vary_mobile"]!= $this->request->post["module_lscache_vary_mobile"]){
-                if($this->request->post["module_lscache_vary_mobile"]=='1'){
-                    $this->initHtaccess(true);
-                } else {
-                    $this->initHtaccess(false);
-                }
-                if($lscInstance){
+            
+            if(!isset($oldSetting["module_lscache_vary_safari"])){
+                $oldSetting["module_lscache_vary_safari"] = '0';
+            }
+            
+            if(($oldSetting["module_lscache_vary_mobile"]!= $this->request->post["module_lscache_vary_mobile"]) || ($oldSetting["module_lscache_vary_safari"]!= $this->request->post["module_lscache_vary_safari"])){
+               $data['success'] = $this->language->get('text_commentHtaccess');
+
+               if($lscInstance){
                     $lscInstance->purgeAllPublic();
                     $data['success'] .=  '<br><i class="fa fa-check-circle"></i> ' .  $this->language->get('text_purgeSuccess');
                 }
@@ -524,21 +526,19 @@ class ControllerExtensionModuleLSCache extends Controller {
         $directives .= '<IfModule LiteSpeed>' . PHP_EOL;
         $directives .= 'CacheLookup on' . PHP_EOL;
         $directives .= '## Uncomment the following directives if you has a separate mobile view' . PHP_EOL;
-        if($mobile){
-            $directives .= 'RewriteEngine On' . PHP_EOL;
-            $directives .= 'RewriteCond %{HTTP_USER_AGENT} "iPhone|iPod|BlackBerry|Palm|Googlebot-Mobile|Mobile|mobile|mobi|Windows Mobile|Safari Mobile|Android|Opera Mini" [NC] RewriteRule .* - [E=Cache-Control:vary=ismobile]' . PHP_EOL;
-        }
-        else{
-            $directives .= '##RewriteEngine On' . PHP_EOL;
-            $directives .= '##RewriteCond %{HTTP_USER_AGENT} "iPhone|iPod|BlackBerry|Palm|Googlebot-Mobile|Mobile|mobile|mobi|Windows Mobile|Safari Mobile|Android|Opera Mini" [NC] RewriteRule .* - [E=Cache-Control:vary=ismobile]' . PHP_EOL;
-        }
+        $directives .= '##RewriteEngine On' . PHP_EOL;
+        $directives .= '##RewriteCond %{HTTP_USER_AGENT} "iPhone|iPod|BlackBerry|Palm|Googlebot-Mobile|Mobile|mobile|mobi|Windows Mobile|Safari Mobile|Android|Opera Mini" [NC] RewriteRule .* - [E=Cache-Control:vary=ismobile]' . PHP_EOL;
 
         $directives .= '## Uncomment the following directives if you has a separate Safari browser view' . PHP_EOL;
-        $directives .= '##RewriteEngine On' . PHP_EOL;
         $directives .= '##RewriteCond %{HTTP_USER_AGENT} Safari' . PHP_EOL;
         $directives .= '##RewriteCond %{HTTP_USER_AGENT} !Chrome' . PHP_EOL;
         $directives .= '##RewriteRule .* - [E=Cache-Control:vary=isSafari]' . PHP_EOL;
 
+        $directives .= '##RewriteCond %{HTTP_USER_AGENT} "iPhone|iPod|BlackBerry|Palm|Googlebot-Mobile|Mobile|mobile|mobi|Windows Mobile|Safari Mobile|Android|Opera Mini" [NC]' . PHP_EOL;
+        $directives .= '##RewriteCond %{HTTP_USER_AGENT} Safari' . PHP_EOL;
+        $directives .= '##RewriteCond %{HTTP_USER_AGENT} !Chrome' . PHP_EOL;
+        $directives .= '##RewriteRule .* - [E=Cache-Control:vary=isMobileSafari]' . PHP_EOL;
+        
         $directives .= '</IfModule>' . PHP_EOL;
         $directives .= '### LITESPEED_CACHE_END';
 
