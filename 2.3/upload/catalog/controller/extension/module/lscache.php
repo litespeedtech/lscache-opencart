@@ -181,7 +181,7 @@ class ControllerExtensionModuleLSCache extends Controller {
     
     protected function setESIBlock($output, $route, $esiBlock, $divElement){
         if($route=='common/header'){
-            $bodyElement = stripos($output, '<body>');            
+            $bodyElement = stripos($output, '<body');            
             if($bodyElement===false){
                 return $esiBlock;
             }
@@ -197,7 +197,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         
     protected function getESIBlock($content, $route, $divElement){
         if($route=='common/header'){
-            $bodyElement = stripos($content, '<body>');
+            $bodyElement = stripos($content, '<body');
             if($bodyElement===false){
                 return $content;
             }
@@ -1017,6 +1017,11 @@ class ControllerExtensionModuleLSCache extends Controller {
     }
     
     protected function checkSafari() {
+        
+        if (strpos($_SERVER['HTTP_USER_AGENT'], 'CriOS') !== FALSE) {
+            return FALSE;
+        }
+        
         if (strpos($_SERVER['HTTP_USER_AGENT'], 'Chrome') !== FALSE) {
             return FALSE;
         }
