@@ -310,7 +310,8 @@
                             <select name="<?php echo $module['key'] ; ?>-esi_tag" id="input-status" class="form-control">
                               <option value="" <?php echo $selectDefault->check($module['esi_tag'], '') ; ?>><?php echo $text_default ; ?></option>
                               <option value="esi_cart" <?php echo $selectDefault->check($module['esi_tag'], 'esi_cart') ; ?>>esi_cart</option>
-                              <option value="esi_wishlist" <?php echo $selectDefault->check($module['esi_type'], 'esi_wishlist') ; ?>>esi_wishlist</option>
+                              <option value="esi_wishlist" <?php echo $selectDefault->check($module['esi_tag'], 'esi_wishlist') ; ?>>esi_wishlist</option>
+                              <option value="esi_compare" <?php echo $selectDefault->check($module['esi_tag'], 'esi_compare') ; ?>>esi_compare</option>
                             </select>
                           </td>
                           

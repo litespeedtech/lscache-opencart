@@ -151,7 +151,6 @@ class ModelExtensionModuleLSCache extends Model {
 		'affiliate/tracking',
 		'affiliate/transaction',
 		'affiliate/logout',
-		'information/contact',
 		'product/compare',
 		'error/not_found');
         

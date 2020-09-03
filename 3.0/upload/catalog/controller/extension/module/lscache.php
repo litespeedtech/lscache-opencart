@@ -468,7 +468,7 @@ class ControllerExtensionModuleLSCache extends Controller {
             $this->lscache->lscInstance->checkPrivateCookie();
             define('LSC_PRIVATE', true);
             $this->checkVary();
-            $purgeTag = 'esi_common_header' ;
+            $purgeTag = 'esi_common_header,esi_cart' ;
             $this->lscache->lscInstance->purgePrivate($purgeTag);
             $this->log();
         } else {
@@ -587,7 +587,7 @@ class ControllerExtensionModuleLSCache extends Controller {
             $this->lscache->lscInstance->checkPrivateCookie();
             define('LSC_PRIVATE', true);
             $this->checkVary();
-            $purgeTag = 'esi_common_header' ;
+            $purgeTag = 'esi_common_header,esi_wishlist' ;
             $this->lscache->lscInstance->purgePrivate($purgeTag);
             $this->log();
         } else {
@@ -605,7 +605,7 @@ class ControllerExtensionModuleLSCache extends Controller {
             $this->lscache->lscInstance->checkPrivateCookie();
             define('LSC_PRIVATE', true);
             $this->checkVary();
-            $purgeTag = 'esi_common_header' ;
+            $purgeTag = 'esi_common_header,esi_compare' ;
             $this->lscache->lscInstance->purgePrivate($purgeTag);
             $this->log();
         } else {
