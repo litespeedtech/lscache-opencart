@@ -170,6 +170,8 @@ class ControllerExtensionModuleLSCache extends Controller {
             $esiBlock = '<esi:include src="' . $link . '" cache-control="private"/>';
         } else if ($esiType == 1) {
             $esiBlock = '<esi:include src="' . $link . '" cache-control="no-cache"/>';
+        } else {
+            return;
         }
         $this->lscache->esiOn = true;
         
@@ -517,7 +519,7 @@ class ControllerExtensionModuleLSCache extends Controller {
             $output .='<script type="text/javascript">$(document).ready(function() { try {  ' . $ajax . ' } catch(err){console.log(err.message);}});</script>';
         }
 
-        $comment = '<!-- LiteSpeed Cache created with user_agent: ' . $_SERVER['HTTP_USER_AGENT'] . '--! >' .PHP_EOL;
+        $comment = '<!-- LiteSpeed Cache created with user_agent: ' . $_SERVER['HTTP_USER_AGENT'] . ' -->' .PHP_EOL;
         $output = $comment . $output;
     }
     
