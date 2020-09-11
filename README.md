@@ -20,6 +20,7 @@ Download a specific version of the LiteSpeed Cache extension package from the Gi
 
 ## Cli Command for Rebuild All Cache
 Run the following command at the website host:
+
 curl -N "http://yoursite/index.php?route=extension/module/lscache/recache&from=cli"
 
 See https://www.litespeedtech.com/support/wiki/doku.php/litespeed_wiki:cache:lscoc for more information.
