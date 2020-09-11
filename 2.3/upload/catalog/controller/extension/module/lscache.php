@@ -689,13 +689,19 @@ class ControllerExtensionModuleLSCache extends Controller {
 
 
     public function recache(){
-        echo 'start recache...' . PHP_EOL;
-        flush();
+
+        $cli = false;
         
         if (php_sapi_name() == 'cli'){
             $cli = true;
-        } else {
-            $cli = false;
+        }
+        
+        if(isset($this->request->get['from']) && ($this->request->get['from']=='cli')){
+            $ip = $_SERVER['REMOTE_ADDR'];
+            $serverIP = $_SERVER['SERVER_ADDR'];
+            if(($serverIP=="127.0.0.1") || ($ip=="127.0.0.1") || ($ip==$serverIP)){
+                $cli = true;
+            }
         }
 
         if($cli){}
@@ -706,17 +712,36 @@ class ControllerExtensionModuleLSCache extends Controller {
             $previouseURL = $this->session->data['previouseURL']; 
             unset($this->session->data['previouseURL']);
         }
+
+        echo 'Recache may take several minutes'. ($cli ? '' : '<br>') . PHP_EOL;
+        flush();
+
+        flush();
+
+        echo 'recache site urls...' . ($cli ? '' : '<br>') . PHP_EOL;
         
         $urls = array();
+        $urls[] = $this->url->link('common/home');
+        $urls[] = $this->url->link('information/contact');
+        $urls[] = $this->url->link('information/sitemap');
+        $urls[] = $this->url->link('product/manufacturer');
+        $urls[] = HTTP_SERVER;
+        $urls[] = HTTP_SERVER . 'index.php';
+        $this->crawlUrls($urls, $cli);
+        $urls = array();
+
 
         $this->load->model('extension/module/lscache');
         $pages = $this->model_extension_module_lscache->getPages();
 
+        echo 'recache page urls...' . ($cli ? '' : '<br>') . PHP_EOL;
         foreach($pages as $page){
             if($page['cacheLogout']){
                 $urls[] = $this->url->link($page['route'],'');
             }
         }
+        $this->crawlUrls($urls, $cli);
+        $urls = array();
         
 		$this->load->model('catalog/category');
 		$this->load->model('catalog/product');
@@ -724,6 +749,7 @@ class ControllerExtensionModuleLSCache extends Controller {
 		$categories_1 = $this->model_catalog_category->getCategories(0);
         $categoryPath = array();
 
+        echo 'recache catagory urls...' . ($cli ? '' : '<br>') . PHP_EOL;
 		foreach ($categories_1 as $category_1) {
             $categoryPath[$category_1['category_id']] = $category_1['category_id'];
 
@@ -745,12 +771,18 @@ class ControllerExtensionModuleLSCache extends Controller {
 
 			$urls[] =  $this->url->link('product/category', 'path=' . $category_1['category_id']);
 		}
+        $this->crawlUrls($urls, $cli);
+        $urls = array();
         
+        echo 'recache information urls...' . ($cli ? '' : '<br>') . PHP_EOL;
 		$this->load->model('catalog/information');
 		foreach ($this->model_catalog_information->getInformations() as $result) {
 			$urls[] = $this->url->link('information/information', 'information_id=' . $result['information_id']);
 		}
+        $this->crawlUrls($urls, $cli);
+        $urls = array();
         
+        echo 'recache product urls...' . ($cli ? '' : '<br>') . PHP_EOL;
 		foreach ($this->model_catalog_product->getProducts() as $result) {
             foreach ($this->model_catalog_product->getCategories($result['product_id']) as $category) {
                 if(isset( $categoryPath[$category['category_id']] )){
@@ -759,23 +791,16 @@ class ControllerExtensionModuleLSCache extends Controller {
             }
 
             $urls[] = $this->url->link('product/product', 'product_id=' . $result['product_id']);
-		}
-        
-        $urls[] = $this->url->link('common/home');
-        $urls[] = $this->url->link('information/contact');
-        $urls[] = $this->url->link('information/sitemap');
-        $urls[] = $this->url->link('product/manufacturer');
-        $urls[] = HTTP_SERVER;
-        $urls[] = HTTP_SERVER . 'index.php';
+		}        
         
         $this->crawlUrls($urls, $cli);
 
         $data['success'] = $this->language->get('text_success');
-
+        
         if(!$cli){
             echo '<script type="text/javascript">
-                   window.location = "' . str_replace('&amp;', '&', $previouseURL) . '"
-              </script>';
+                       window.location = "' . str_replace('&amp;', '&', $previouseURL) . '"
+                  </script>';
         }
         
     }
@@ -800,15 +825,7 @@ class ControllerExtensionModuleLSCache extends Controller {
             ob_end_clean();
         }
         $this->log('Start Recache:');
-        if(!$cli){
-            echo '<h4>Recache may take several minutes</h4><br/>';
-            flush();
-        } else {
-            echo 'Recache may take several minutes'. PHP_EOL;
-            flush();
-        }
         
-        $printURL = isset($this->lscache->setting['module_lscache_log_level']) && ($this->lscache->setting['module_lscache_log_level']==self::LOG_DEBUG) ;
         $recacheOption = isset($this->lscache->setting['module_lscache_recache_option']) ? $this->lscache->setting['module_lscache_recache_option'] : 0;
         $cookies = array('', '_lscache_vary=session%3AloggedOut;lsc_private=e70f67d087a65a305e80267ba3bfbc97');
 
@@ -852,7 +869,7 @@ class ControllerExtensionModuleLSCache extends Controller {
                 }
             }
         }
-             
+        
         foreach ($urls as $url) {
             foreach($cookies as $cookie){
                 $this->log('crawl:'.$url . '    cookie:' . $cookie);
@@ -875,6 +892,7 @@ class ControllerExtensionModuleLSCache extends Controller {
                 if($cookie!=''){
                     curl_setopt($ch, CURLOPT_COOKIE, $cookie);
                 }
+                
                 $buffer = curl_exec($ch);
                 $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
                 curl_close($ch);
@@ -896,14 +914,9 @@ class ControllerExtensionModuleLSCache extends Controller {
 
                 if($cookie!=''){}
                 else if($cli){
-                    echo $current . '/' . $count . ' ' . $url . PHP_EOL;
-                } else if($printURL){
-                    echo 'url: ' . $url . ' httpcode: ' . $httpcode . '<br/>';
+                    echo $current . '/' . $count . ' ' . $url . ' : ' . $httpcode . PHP_EOL;
                 } else {
-                    echo '*';
-                }
-                if (($current % 10 == 0) && (!$cli) && ($cookie=='')) {
-                    echo floor($current * 100 / $count) . '%<br/>';
+                    echo $current . '/' . $count . ' ' . $url . ' : ' . $httpcode . '<br/>'. PHP_EOL;
                 }
                 flush();
 
@@ -913,14 +926,13 @@ class ControllerExtensionModuleLSCache extends Controller {
 
             }
             $current++;
-            
         }
 
         $totalTime = round($this->microtimeMinus($begin, microtime()) / 1000000);
 
         return $totalTime;  //script redirect to previous page
-        
     }
+
     
     public function purgeAll(){
         if (php_sapi_name() != 'cli'){
