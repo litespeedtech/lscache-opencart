@@ -23,5 +23,11 @@ Run the following command at the website host:
 
 curl -N "http://yoursite/index.php?route=extension/module/lscache/recache&from=cli"
 
+## Cli Command for Purge All Cache
+Run the following command at the website host:
+
+curl -N "http://yoursite/index.php?route=extension/module/lscache/purgeAll&from=cli"
+
+
 See https://www.litespeedtech.com/support/wiki/doku.php/litespeed_wiki:cache:lscoc for more information.
 

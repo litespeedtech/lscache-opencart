@@ -50,7 +50,7 @@
                 <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_status">{{ entry_status }}</label>
                   <div class="col-sm-10">
-                    <select name="module_lscache_status" id="input-status" class="form-control">
+                    <select name="module_lscache_status" class="form-control">
                       <option value="1" {{ selectEnable.check(module_lscache_status, '1') }}>{{ text_enabled }}</option>
                       <option value="0" {{ selectEnable.check(module_lscache_status, '0') }}>{{ text_disabled }}</option>
                     </select>
@@ -67,7 +67,7 @@
                 <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_esi">{{ entry_esi }}</label>
                   <div class="col-sm-10">
-                    <select name="module_lscache_esi" id="input-status" class="form-control">
+                    <select name="module_lscache_esi" class="form-control">
                 {% if serverType == 'LITESPEED_SERVER_ADC' or serverType == 'LITESPEED_SERVER_ENT'  %}
                        <option value="1" {{ selectEnable.check(module_lscache_esi, '1') }}>{{ text_enabled }}</option>
                 {% endif %}
@@ -79,7 +79,7 @@
                 <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_vary_login"><span data-toggle="tooltip" title="{{ help_vary_login }}">{{ entry_vary_login }}</span></label>
                   <div class="col-sm-10">
-                    <select name="module_lscache_vary_login" id="input-status" class="form-control">
+                    <select name="module_lscache_vary_login" class="form-control">
                       <option value="1" {{ selectEnable.check(module_lscache_vary_login, '1') }}>{{ text_enabled }}</option>
                       <option value="0" {{ selectEnable.check(module_lscache_vary_login, '0') }}>{{ text_disabled }}</option>
                     </select>
@@ -89,7 +89,7 @@
                 <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_vary_mobile"><span data-toggle="tooltip" title="{{ help_vary_mobile }}">{{ entry_vary_mobile }}</span></label>
                   <div class="col-sm-10">
-                    <select name="module_lscache_vary_mobile" id="input-status" class="form-control">
+                    <select name="module_lscache_vary_mobile" class="form-control">
                       <option value="1" {{ selectDisable.check(module_lscache_vary_mobile, '1') }}>{{ text_enabled }}</option>
                       <option value="0" {{ selectDisable.check(module_lscache_vary_mobile, '0') }}>{{ text_disabled }}</option>
                     </select>
@@ -99,7 +99,7 @@
                 <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_vary_safari"><span data-toggle="tooltip" title="{{ help_vary_safari }}">{{ entry_vary_safari }}</span></label>
                   <div class="col-sm-10">
-                    <select name="module_lscache_vary_safari" id="input-status" class="form-control">
+                    <select name="module_lscache_vary_safari" class="form-control">
                       <option value="0" {{ selectDisable.check(module_lscache_vary_safari, '0') }}>{{ text_disabled }}</option>
                       <option value="1" {{ selectDisable.check(module_lscache_vary_safari, '1') }}>{{ text_enabled }}</option>
                     </select>
@@ -109,7 +109,7 @@
                 <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_recache_option">{{ entry_recache_option }}</label>
                   <div class="col-sm-10">
-                    <select name="module_lscache_recache_option" id="input-status" class="form-control">
+                    <select name="module_lscache_recache_option" class="form-control">
                       <option value="0" {{ selectDisable.check(module_lscache_recache_option, '0') }}>{{ text_recache_default }}</option>
                       <option value="1" {{ selectDisable.check(module_lscache_recache_option, '1') }}>{{ text_recache_language }}</option>
                       <option value="2" {{ selectDisable.check(module_lscache_recache_option, '2') }}>{{ text_recache_currency }}</option>
@@ -119,9 +119,16 @@
                 </div>
 
                 <div class="form-group">
+                  <label class="col-sm-2 control-label" for="module_lscache_recache_userAgent">{{ entry_recache_userAgent }}</label>
+                  <div class="col-sm-10">
+                    <textarea  name="module_lscache_recache_userAgent" placeholder="{{ help_recache_userAgent }}" class="form-control" rows="3">{{ module_lscache_recache_userAgent }}</textarea>
+                  </div>
+                </div>
+
+                <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_ajax_wishlist">{{ entry_ajax_wishlist }}</label>
                   <div class="col-sm-10">
-                    <select name="module_lscache_ajax_wishlist" id="input-status" class="form-control">
+                    <select name="module_lscache_ajax_wishlist" class="form-control">
                       <option value="1" {{ selectDisable.check(module_lscache_ajax_wishlist, '1') }}>{{ text_enabled }}</option>
                       <option value="0" {{ selectDisable.check(module_lscache_ajax_wishlist, '0') }}>{{ text_disabled }}</option>
                     </select>
@@ -131,7 +138,7 @@
                 <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_ajax_compare">{{ entry_ajax_compare }}</label>
                   <div class="col-sm-10">
-                    <select name="module_lscache_ajax_compare" id="input-status" class="form-control">
+                    <select name="module_lscache_ajax_compare" class="form-control">
                       <option value="1" {{ selectDisable.check(module_lscache_ajax_compare, '1') }}>{{ text_enabled }}</option>
                       <option value="0" {{ selectDisable.check(module_lscache_ajax_compare, '0') }}>{{ text_disabled }}</option>
                     </select>
@@ -141,7 +148,7 @@
                 <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_ajax_shopcart">{{ entry_ajax_shopcart }}</label>
                   <div class="col-sm-10">
-                    <select name="module_lscache_ajax_shopcart" id="input-status" class="form-control">
+                    <select name="module_lscache_ajax_shopcart" class="form-control">
                       <option value="1" {{ selectDisable.check(module_lscache_ajax_shopcart, '1') }}>{{ text_enabled }}</option>
                       <option value="0" {{ selectDisable.check(module_lscache_ajax_shopcart, '0') }}>{{ text_disabled }}</option>
                     </select>
@@ -151,7 +158,7 @@
                 <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_log_level">{{ entry_loglevel }}</label>
                   <div class="col-sm-10">
-                    <select name="module_lscache_log_level" id="input-status" class="form-control">
+                    <select name="module_lscache_log_level" class="form-control">
                       <option value="0" {{ selectDisable.check(module_lscache_log_level, '0') }}>{{ text_disabled }}</option>
                       <option value="3" {{ selectDisable.check(module_lscache_log_level, '3') }}>{{ text_error }}</option>
                       <option value="6" {{ selectDisable.check(module_lscache_log_level, '6') }}>{{ text_info }}</option>
@@ -277,7 +284,7 @@
                           </td>
                           <td class="text-left"><input type="text" name="esi_add-esi_ttl" value="1800" placeholder="ESI Module TTS (seconds)"  class="form-control"></td>
                           <td class="text-left">
-                            <select name="esi_add-esi_tag" id="input-status" class="form-control">
+                            <select name="esi_add-esi_tag" class="form-control">
                               <option value="" selected>{{ text_default }}</option>
                               <option value="esi_cart">esi_cart</option>
                               <option value="esi_wishlist">esi_wishlist</option>
@@ -304,7 +311,7 @@
                           </td>
                           <td class="text-left"><input type="text" name="{{module.key}}-esi_ttl" value="{{module.esi_ttl}}" placeholder="{{esi_ttl}}"  class="form-control"></td>
                           <td class="text-left">
-                            <select name="{{ module.key }}-esi_tag" id="input-status" class="form-control">
+                            <select name="{{ module.key }}-esi_tag" class="form-control">
                               <option value="" {{ selectDefault.check(module.esi_tag, '') }}>{{ text_default }}</option>
                               <option value="esi_cart" {{ selectDefault.check(module.esi_tag, 'esi_cart') }}>esi_cart</option>
                               <option value="esi_wishlist" {{ selectDefault.check(module.esi_tag, 'esi_wishlist') }}>esi_wishlist</option>

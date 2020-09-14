@@ -50,7 +50,7 @@
                 <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_status"><?php echo $entry_status ; ?></label>
                   <div class="col-sm-10">
-                    <select name="module_lscache_status" id="input-status" class="form-control">
+                    <select name="module_lscache_status" class="form-control">
                       <option value="1" <?php echo $selectEnable->check($module_lscache_status, '1') ; ?>><?php echo $text_enabled ; ?></option>
                       <option value="0" <?php echo $selectEnable->check($module_lscache_status, '0') ; ?>><?php echo $text_disabled ; ?></option>
                     </select>
@@ -67,7 +67,7 @@
                 <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_esi"><?php echo $entry_esi ; ?></label>
                   <div class="col-sm-10">
-                    <select name="module_lscache_esi" id="input-status" class="form-control">
+                    <select name="module_lscache_esi" class="form-control">
                 <?php if(($serverType == 'LITESPEED_SERVER_ADC') || ($serverType == 'LITESPEED_SERVER_ENT'))  { ?>
                       <option value="1" <?php echo $selectEnable->check($module_lscache_esi, '1') ; ?>><?php echo $text_enabled ; ?></option>
                 <?php } ?>
@@ -79,7 +79,7 @@
                 <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_vary_login"><span data-toggle="tooltip" title="<?php echo $help_vary_login ; ?>"><?php echo $entry_vary_login ; ?></span></label>
                   <div class="col-sm-10">
-                    <select name="module_lscache_vary_login" id="input-status" class="form-control">
+                    <select name="module_lscache_vary_login" class="form-control">
                       <option value="1" <?php echo $selectEnable->check($module_lscache_vary_login, '1') ; ?>><?php echo $text_enabled ; ?></option>
                       <option value="0" <?php echo $selectEnable->check($module_lscache_vary_login, '0') ; ?>><?php echo $text_disabled ; ?></option>
                     </select>
@@ -89,7 +89,7 @@
                 <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_vary_mobile"><span data-toggle="tooltip" title="<?php echo $help_vary_mobile ; ?>"><?php echo $entry_vary_mobile ; ?></span></label>
                   <div class="col-sm-10">
-                    <select name="module_lscache_vary_mobile" id="input-status" class="form-control">
+                    <select name="module_lscache_vary_mobile" class="form-control">
                       <option value="1" <?php echo $selectDisable->check($module_lscache_vary_mobile, '1') ; ?>><?php echo $text_enabled ; ?></option>
                       <option value="0" <?php echo $selectDisable->check($module_lscache_vary_mobile, '0') ; ?>><?php echo $text_disabled ; ?></option>
                     </select>
@@ -99,7 +99,7 @@
                 <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_vary_safari"><span data-toggle="tooltip" title="<?php echo $help_vary_safari ; ?>"><?php echo $entry_vary_safari ; ?></span></label>
                   <div class="col-sm-10">
-                    <select name="module_lscache_vary_safari" id="input-status" class="form-control">
+                    <select name="module_lscache_vary_safari" class="form-control">
                       <option value="1" <?php echo $selectDisable->check($module_lscache_vary_safari, '1') ; ?>><?php echo $text_enabled ; ?></option>
                       <option value="0" <?php echo $selectDisable->check($module_lscache_vary_safari, '0') ; ?>><?php echo $text_disabled ; ?></option>
                     </select>
@@ -109,7 +109,7 @@
                 <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_recache_option"><?php echo $entry_recache_option ; ?></label>
                   <div class="col-sm-10">
-                    <select name="module_lscache_recache_option" id="input-status" class="form-control">
+                    <select name="module_lscache_recache_option" class="form-control">
                         <option value="0" <?php echo $selectDisable->check($module_lscache_recache_option, '0') ; ?>><?php echo $text_recache_default ; ?></option>
                       <option value="1" <?php echo $selectDisable->check($module_lscache_recache_option, '1') ; ?>><?php echo $text_recache_language ; ?></option>
                       <option value="2" <?php echo $selectDisable->check($module_lscache_recache_option, '2') ; ?>><?php echo $text_recache_currency ; ?></option>
@@ -119,9 +119,16 @@
                 </div>                    
 
                 <div class="form-group">
+                  <label class="col-sm-2 control-label" for="module_lscache_recache_userAgent"><?php echo $entry_recache_userAgent  ; ?></label>
+                  <div class="col-sm-10">
+                    <textarea  name="module_lscache_recache_userAgent" placeholder="<?php echo $help_recache_userAgent  ; ?>" class="form-control" rows="3"><?php echo $module_lscache_recache_userAgent ; ?></textarea>
+                  </div>
+                </div>
+                
+                <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_ajax_wishlist"><?php echo $entry_ajax_wishlist ; ?></label>
                   <div class="col-sm-10">
-                    <select name="module_lscache_ajax_wishlist" id="input-status" class="form-control">
+                    <select name="module_lscache_ajax_wishlist" class="form-control">
                       <option value="1" <?php echo $selectEnable->check($module_lscache_ajax_wishlist, '1') ; ?>><?php echo $text_enabled ; ?></option>
                       <option value="0" <?php echo $selectEnable->check($module_lscache_ajax_wishlist, '0') ; ?>><?php echo $text_disabled ; ?></option>
                     </select>
@@ -131,7 +138,7 @@
                 <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_ajax_compare"><?php echo $entry_ajax_compare ; ?></label>
                   <div class="col-sm-10">
-                    <select name="module_lscache_ajax_compare" id="input-status" class="form-control">
+                    <select name="module_lscache_ajax_compare" class="form-control">
                       <option value="1" <?php echo $selectDisable->check($module_lscache_ajax_compare, '1') ; ?>><?php echo $text_enabled ; ?></option>
                       <option value="0" <?php echo $selectDisable->check($module_lscache_ajax_compare, '0') ; ?>><?php echo $text_disabled ; ?></option>
                     </select>
@@ -142,18 +149,17 @@
                 <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_ajax_shopcart"><?php echo $entry_ajax_shopcart ; ?></label>
                   <div class="col-sm-10">
-                    <select name="module_lscache_ajax_shopcart" id="input-status" class="form-control">
+                    <select name="module_lscache_ajax_shopcart" class="form-control">
                       <option value="1" <?php echo $selectDisable->check($module_lscache_ajax_shopcart, '1') ; ?>><?php echo $text_enabled ; ?></option>
                       <option value="0" <?php echo $selectDisable->check($module_lscache_ajax_shopcart, '0') ; ?>><?php echo $text_disabled ; ?></option>
                     </select>
                   </div>
                 </div>
                 
-                
                 <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_log_level"><?php echo $entry_loglevel ; ?></label>
                   <div class="col-sm-10">
-                    <select name="module_lscache_log_level" id="input-status" class="form-control">
+                    <select name="module_lscache_log_level" class="form-control">
                       <option value="0" <?php echo $selectDisable->check($module_lscache_log_level, '0') ; ?>><?php echo $text_disabled ; ?></option>
                       <option value="3" <?php echo $selectDisable->check($module_lscache_log_level, '3') ; ?>><?php echo $text_error ; ?></option>
                       <option value="6" <?php echo $selectDisable->check($module_lscache_log_level, '6') ; ?>><?php echo $text_info ; ?></option>
@@ -162,7 +168,6 @@
                   </div>
                 </div>
                                     
-                
             </div>
                     
             <div class="tab-pane <?php echo $tabtool->check($tab,'pages'); ?>" id="tab-pages">
@@ -280,7 +285,7 @@
                           </td>
                           <td class="text-left"><input type="text" name="esi_add-esi_ttl" value="1800" placeholder="ESI Module TTS (seconds)"  class="form-control"></td>
                           <td class="text-left">
-                            <select name="esi_add-esi_tag" id="input-status" class="form-control">
+                            <select name="esi_add-esi_tag" class="form-control">
                               <option value="" selected><?php echo $text_default ; ?></option>
                               <option value="esi_cart">esi_cart</option>
                               <option value="esi_wishlist">esi_wishlist</option>
@@ -307,7 +312,7 @@
                           </td>
                           <td class="text-left"><input type="text" name="<?php echo $module['key']; ?>-esi_ttl" value="<?php echo $module['esi_ttl']; ?>" placeholder="<?php echo $esi_ttl; ?>"  class="form-control"></td>
                           <td class="text-left">
-                            <select name="<?php echo $module['key'] ; ?>-esi_tag" id="input-status" class="form-control">
+                            <select name="<?php echo $module['key'] ; ?>-esi_tag" class="form-control">
                               <option value="" <?php echo $selectDefault->check($module['esi_tag'], '') ; ?>><?php echo $text_default ; ?></option>
                               <option value="esi_cart" <?php echo $selectDefault->check($module['esi_tag'], 'esi_cart') ; ?>>esi_cart</option>
                               <option value="esi_wishlist" <?php echo $selectDefault->check($module['esi_tag'], 'esi_wishlist') ; ?>>esi_wishlist</option>

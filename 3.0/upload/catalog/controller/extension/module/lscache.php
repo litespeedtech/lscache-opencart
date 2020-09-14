@@ -54,7 +54,6 @@ class ControllerExtensionModuleLSCache extends Controller {
             }
         }
 
-
         // Checks if caching is allowed via server variable
         if (!empty($_SERVER['X-LSCACHE']) || LITESPEED_SERVER_TYPE === 'LITESPEED_SERVER_ADC' || defined('LITESPEED_CLI')) {
             !defined('LITESPEED_ALLOWED') && define('LITESPEED_ALLOWED', true);
@@ -825,6 +824,11 @@ class ControllerExtensionModuleLSCache extends Controller {
         $this->log('Start Recache:');
         
         $recacheOption = isset($this->lscache->setting['module_lscache_recache_option']) ? $this->lscache->setting['module_lscache_recache_option'] : 0;
+        $recacheUserAgents = isset($this->lscache->setting['module_lscache_recache_userAgent']) ? explode( PHP_EOL, $this->lscache->setting['module_lscache_recache_userAgent']) : array("lscache_runner");
+        if(empty($recacheUserAgents) || empty($recacheUserAgents[0])){
+            $recacheUserAgents = array('lscache_runner');
+        }
+        
         $cookies = array('', '_lscache_vary=session%3AloggedOut;lsc_private=e70f67d087a65a305e80267ba3bfbc97');
 
 		$this->load->model('localisation/language');
@@ -869,60 +873,67 @@ class ControllerExtensionModuleLSCache extends Controller {
         }
         
         foreach ($urls as $url) {
+
+            $url = str_replace('&amp;', '&', $url);
+            
             foreach($cookies as $cookie){
-                $this->log('crawl:'.$url . '    cookie:' . $cookie);
-                $start = microtime();
-                $ch = curl_init();
-                $url = str_replace('&amp;', '&', $url);
-                curl_setopt($ch, CURLOPT_URL, $url);
-                curl_setopt($ch, CURLOPT_HEADER, false);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-                curl_setopt($ch, CURLOPT_MAXREDIRS, 1);
-                curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-                if($cli){
-                    curl_setopt($ch, CURLOPT_USERAGENT, 'lscache_walker');
-                } else {
-                    curl_setopt($ch, CURLOPT_USERAGENT, 'lscache_runner');
-                }
-                if($cookie!=''){
-                    curl_setopt($ch, CURLOPT_COOKIE, $cookie);
-                }
+                foreach($recacheUserAgents as $userAgent){
                 
-                $buffer = curl_exec($ch);
-                $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                curl_close($ch);
+                    $this->log('crawl:'.$url . '    cookie:' . $cookie);
+                    $start = microtime();
+                    $ch = curl_init();
+                    curl_setopt($ch, CURLOPT_URL, $url);
+                    curl_setopt($ch, CURLOPT_HEADER, false);
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+                    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+                    curl_setopt($ch, CURLOPT_MAXREDIRS, 1);
+                    curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
 
-                if (in_array($httpcode, $acceptCode)) {
-                    $success++;
-                } else if($httpcode==428){
-                    if(!$cli){
-                        echo 'Web Server crawler feature not enabled, please check <a href="https://www.litespeedtech.com/support/wiki/doku.php/litespeed_wiki:cache:lscwp:configuration:enabling_the_crawler" target="_blank">web server settings</a>';
-                    } else {
-                        echo 'Web Server crawler feature not enabled, please check "https://www.litespeedtech.com/support/wiki/doku.php/litespeed_wiki:cache:lscwp:configuration:enabling_the_crawler"' .  PHP_EOL;
+                    if($cli && ($userAgent=='lscache_runner')){
+                        $userAgent = 'lscache_walker';
                     }
-                    $this->log('httpcode:'.$httpcode);
-                    sleep(5);
-                    return;
-                } else {
-                    $this->log('httpcode:'.$httpcode);
-                }
+                    
+                    curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);
 
-                if($cookie!=''){}
-                else if($cli){
-                    echo $current . '/' . $count . ' ' . $url . ' : ' . $httpcode . PHP_EOL;
-                } else {
-                    echo $current . '/' . $count . ' ' . $url . ' : ' . $httpcode . '<br/>'. PHP_EOL;
-                }
-                flush();
+                    if($cookie!=''){
+                        curl_setopt($ch, CURLOPT_COOKIE, $cookie);
+                    }
 
-                $end = microtime();
-                $diff = $this->microtimeMinus($start, $end);
-                usleep(round($diff));
+                    $buffer = curl_exec($ch);
+                    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                    curl_close($ch);
+
+                    if (in_array($httpcode, $acceptCode)) {
+                        $success++;
+                    } else if($httpcode==428){
+                        if(!$cli){
+                            echo 'Web Server crawler feature not enabled, please check <a href="https://www.litespeedtech.com/support/wiki/doku.php/litespeed_wiki:cache:lscwp:configuration:enabling_the_crawler" target="_blank">web server settings</a>';
+                        } else {
+                            echo 'Web Server crawler feature not enabled, please check "https://www.litespeedtech.com/support/wiki/doku.php/litespeed_wiki:cache:lscwp:configuration:enabling_the_crawler"' .  PHP_EOL;
+                        }
+                        $this->log('httpcode:'.$httpcode);
+                        sleep(5);
+                        return;
+                    } else {
+                        $this->log('httpcode:'.$httpcode);
+                    }
+
+                    $end = microtime();
+                    $diff = $this->microtimeMinus($start, $end);
+                    usleep(round($diff));
+                }
 
             }
+
+            if($cli){
+                echo $current . '/' . $count . ' ' . $url . ' : ' . $httpcode . PHP_EOL;
+            } else {
+                echo $current . '/' . $count . ' ' . $url . ' : ' . $httpcode . '<br/>'. PHP_EOL;
+            }
+            flush();
+
             $current++;
         }
 
@@ -932,10 +943,25 @@ class ControllerExtensionModuleLSCache extends Controller {
     }
 
     public function purgeAll(){
-        if (php_sapi_name() != 'cli'){
+        $cli = false;
+        
+        if (php_sapi_name() == 'cli'){
+            $cli = true;
+        }
+        
+        if(isset($this->request->get['from']) && ($this->request->get['from']=='cli')){
+            $ip = $_SERVER['REMOTE_ADDR'];
+            $serverIP = $_SERVER['SERVER_ADDR'];
+            if(($serverIP=="127.0.0.1") || ($ip=="127.0.0.1") || ($ip==$serverIP)){
+                $cli = true;
+            }
+        }
+
+        if (!$cli){
             http_response_code(403);
             return;
         }
+        
         $url= $this->url->link('extension/module/lscache/purgeAllAction');
         $content = $this->file_get_contents_curl($url);
         echo $content;

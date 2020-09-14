@@ -44,6 +44,7 @@ $_['entry_ajax_wishlist']     = 'Ajax Load Wishlist';
 $_['entry_ajax_compare']     = 'Ajax Load Compare';
 $_['entry_ajax_shopcart']     = 'Ajax Load Shopcart';
 $_['entry_recache_option']     = 'Rebuild Cache Options';
+$_['entry_recache_userAgent']     = 'Rebuild Cache for specific devices/browsers';
 
 $_['help_vary_safari']     = 'Create a separate cached copy of each page for Safari browser, please check .htaccess file and comment/uncomment Safari view part according to this option';
 $_['help_public_ttl']     = 'LiteSpeed page cache lifetime in seconds';
@@ -52,6 +53,7 @@ $_['help_page_login_cachable']     = 'Page Cache for logged-in users';
 $_['help_page_logout_cachable']     = 'Page Cache for logged-out users';
 $_['help_vary_mobile']     = 'Create a separate cached copy of each page for mobile devices, please check .htaccess file and comment/uncomment mobile view part according to this option';
 $_['help_vary_login']     = 'Create a separate cached copy of each page for Logged-in Users';
+$_['help_recache_userAgent']     = 'Input User Agent of your device browser,  one User Agent per line';
 
 $_['help_purge_system_cache']     = 'Purge all Opencart system cache after purge all LiteSpeed Cache';
 $_['help_esi_ttl']     = 'ESI module cache lifetime in seconds';
