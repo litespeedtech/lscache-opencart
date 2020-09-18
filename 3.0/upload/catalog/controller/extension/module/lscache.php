@@ -94,7 +94,7 @@ class ControllerExtensionModuleLSCache extends Controller {
        
     }
 
-    
+
     public function onAfterRoute($route, &$args) {
         
         $pageKey = 'page_' . str_replace('/', '_', $route);
@@ -367,6 +367,10 @@ class ControllerExtensionModuleLSCache extends Controller {
             $vary['device'] = $device;
         }
         
+        if(isset($_SERVER['LSCACHE_VARY_VALUE']) && !empty($_SERVER['LSCACHE_VARY_VALUE'])){
+            $vary['htaccess'] = $_SERVER['LSCACHE_VARY_VALUE'];
+        }
+        
         if($this->session->data['currency']!=$this->config->get('config_currency')){
             $vary['currency'] = $this->session->data['currency'];
         }
@@ -384,7 +388,8 @@ class ControllerExtensionModuleLSCache extends Controller {
         $varyKey = $this->implode2($vary, ',', ':');
 
         //$this->log('vary:' . $varyKey, 0);
-        $this->lscache->lscInstance->checkVary($varyKey, $this->request->server['HTTP_HOST']);
+        $this->lscache->lscInstance->checkVary($varyKey);
+        
     }
 
 
@@ -829,7 +834,11 @@ class ControllerExtensionModuleLSCache extends Controller {
             $recacheUserAgents = array('lscache_runner');
         }
         
-        $cookies = array('', '_lscache_vary=session%3AloggedOut;lsc_private=e70f67d087a65a305e80267ba3bfbc97');
+        if($this->lscache->esiEnabled){
+            $cookies = array('', '_lscache_vary=session%3AloggedOut;lsc_private=e70f67d087a65a305e80267ba3bfbc97');
+        } else {
+            $cookies = array('');
+        }
 
 		$this->load->model('localisation/language');
 		$languages = array();

@@ -367,7 +367,10 @@ class ControllerExtensionModuleLSCache extends Controller {
             $vary['browser'] = 'safari';
         }
 
-        
+        if(isset($_SERVER['LSCACHE_VARY_VALUE']) && !empty($_SERVER['LSCACHE_VARY_VALUE'])){
+            $vary['htaccess'] = $_SERVER['LSCACHE_VARY_VALUE'];
+        }
+                
         if($this->session->data['currency']!=$this->config->get('config_currency')){
             $vary['currency'] = $this->session->data['currency'];
         }
@@ -831,8 +834,12 @@ class ControllerExtensionModuleLSCache extends Controller {
         if(empty($recacheUserAgents) || empty($recacheUserAgents[0])){
             $recacheUserAgents = array('lscache_runner');
         }
-        
-        $cookies = array('', '_lscache_vary=session%3AloggedOut;lsc_private=e70f67d087a65a305e80267ba3bfbc97');
+                
+        if($this->lscache->esiEnabled){
+            $cookies = array('', '_lscache_vary=session%3AloggedOut;lsc_private=e70f67d087a65a305e80267ba3bfbc97');
+        } else {
+            $cookies = array('');
+        }
 
 		$this->load->model('localisation/language');
 		$languages = array();

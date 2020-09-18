@@ -527,7 +527,8 @@ class ControllerExtensionModuleLSCache extends Controller {
         $directives .= 'CacheLookup on' . PHP_EOL;
         $directives .= '## Uncomment the following directives if you has a separate mobile view' . PHP_EOL;
         $directives .= '##RewriteEngine On' . PHP_EOL;
-        $directives .= '##RewriteCond %{HTTP_USER_AGENT} "iPhone|iPod|BlackBerry|Palm|Googlebot-Mobile|Mobile|mobile|mobi|Windows Mobile|Safari Mobile|Android|Opera Mini" [NC] RewriteRule .* - [E=Cache-Control:vary=ismobile]' . PHP_EOL;
+        $directives .= '##RewriteCond %{HTTP_USER_AGENT} "iPhone|iPod|BlackBerry|Palm|Googlebot-Mobile|Mobile|mobile|mobi|Windows Mobile|Safari Mobile|Android|Opera Mini" [NC] ' . PHP_EOL;
+        $directives .= '##RewriteRule .* - [E=Cache-Control:vary=isMobile]' . PHP_EOL;
 
         $directives .= '## Uncomment the following directives if you has a separate Safari browser view' . PHP_EOL;
         $directives .= '##RewriteCond %{HTTP_USER_AGENT} Safari' . PHP_EOL;
@@ -553,11 +554,11 @@ class ControllerExtensionModuleLSCache extends Controller {
             if ($count <= 0) {
                 $newContent = preg_replace('@\<IfModule\ LiteSpeed\>.*?\<\/IfModule\>@s', '', $content);
                 $newContent = preg_replace('@CacheLookup\ on@s', '', $newContent);
-                file_put_contents($htaccess, $newContent . PHP_EOL . $directives . PHP_EOL);
+                file_put_contents($htaccess, $directives .PHP_EOL .$newContent);
             } else if ($count > 0) {
                 file_put_contents($htaccess, $newContent);
             } else {
-                file_put_contents($htaccess, PHP_EOL . $directives . PHP_EOL, FILE_APPEND);
+                file_put_contents($htaccess, $directives .PHP_EOL .$newContent);
             }
         } else {
             file_put_contents($htaccess, $directives);
