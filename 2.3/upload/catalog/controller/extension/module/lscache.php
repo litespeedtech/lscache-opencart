@@ -359,18 +359,14 @@ class ControllerExtensionModuleLSCache extends Controller {
             $vary['session'] = 'loggedIn';
         }
         
-        if (($device=$this->checkMobile()) && isset($this->lscache->setting['module_lscache_vary_mobile']) && ($this->lscache->setting['module_lscache_vary_mobile']=='1'))  {
-            $vary['device'] = $device;
-        }
-        
-        if ($this->checkSafari() && isset($this->lscache->setting['module_lscache_vary_safari']) && ($this->lscache->setting['module_lscache_vary_safari']=='1'))  {
+        if (isset($this->lscache->setting['module_lscache_vary_safari']) && ($this->lscache->setting['module_lscache_vary_safari']=='1') && $this->checkSafari())  {
             $vary['browser'] = 'safari';
         }
 
-        if(isset($_SERVER['LSCACHE_VARY_VALUE']) && !empty($_SERVER['LSCACHE_VARY_VALUE'])){
-            $vary['htaccess'] = $_SERVER['LSCACHE_VARY_VALUE'];
+        if (isset($this->lscache->setting['module_lscache_vary_mobile']) && ($this->lscache->setting['module_lscache_vary_mobile']=='1') && ($device=$this->checkMobile()) )  {
+            $vary['device'] = $device;
         }
-                
+                        
         if($this->session->data['currency']!=$this->config->get('config_currency')){
             $vary['currency'] = $this->session->data['currency'];
         }
