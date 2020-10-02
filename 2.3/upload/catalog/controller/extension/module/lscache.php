@@ -46,7 +46,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         if (!defined('LITESPEED_SERVER_TYPE')) {
             if (isset($_SERVER['HTTP_X_LSCACHE']) && $_SERVER['HTTP_X_LSCACHE']) {
                 define('LITESPEED_SERVER_TYPE', 'LITESPEED_SERVER_ADC');
-            } elseif (isset($_SERVER['LSWS_EDITION']) && strpos($_SERVER['LSWS_EDITION'], 'Openlitespeed') === 0) {
+            } elseif (isset($_SERVER['LSWS_EDITION']) && ( strpos($_SERVER['LSWS_EDITION'], 'Openlitespeed') !== FALSE ) ) {
                 define('LITESPEED_SERVER_TYPE', 'LITESPEED_SERVER_OLS');
             } elseif (isset($_SERVER['SERVER_SOFTWARE']) && $_SERVER['SERVER_SOFTWARE'] == 'LiteSpeed') {
                 define('LITESPEED_SERVER_TYPE', 'LITESPEED_SERVER_ENT');
@@ -66,7 +66,7 @@ class ControllerExtensionModuleLSCache extends Controller {
             return;
         }
 
-        if(( LITESPEED_SERVER_TYPE !== 'LITESPEED_SERVER_OLS' ) && isset($this->lscache->setting['module_lscache_esi']) && $this->lscache->setting['module_lscache_esi'] ) {
+        if(( LITESPEED_SERVER_TYPE !== 'LITESPEED_SERVER_OLS' ) && isset($this->lscache->setting['module_lscache_esi']) && ($this->lscache->setting['module_lscache_esi']=='1') ) {
             $this->lscache->esiEnabled = true;
         }
         
@@ -1052,6 +1052,20 @@ class ControllerExtensionModuleLSCache extends Controller {
 
     
     protected function checkMobile(){
+     if (defined('JOURNAL3_ACTIVE')) {
+         //error_log(print_r('Journal3 mobile detection algorithm used',true));
+         if (strpos($_SERVER['HTTP_USER_AGENT'], 'iPhone') !== FALSE){
+            return 'mobile';
+        } elseif (strpos($_SERVER['HTTP_USER_AGENT'], 'iPad') !== FALSE){
+            return 'tablet';
+        } elseif ( (strpos($_SERVER['HTTP_USER_AGENT'], 'Android') !== FALSE) && (strpos($_SERVER['HTTP_USER_AGENT'], 'Chrome') !== FALSE) && (strpos($_SERVER['HTTP_USER_AGENT'], 'Mobile') !== FALSE) ){
+            return 'mobile';
+        } elseif ( (strpos($_SERVER['HTTP_USER_AGENT'], 'Android') !== FALSE) && (strpos($_SERVER['HTTP_USER_AGENT'], 'Chrome') !== FALSE) && (strpos($_SERVER['HTTP_USER_AGENT'], 'Mobile') == FALSE) ){
+            return 'tablet';
+        } else {
+            return false;
+        }
+     } else {
         include_once(DIR_SYSTEM . 'library/Mobile_Detect/Mobile_Detect.php');
         $detect = new Mobile_Detect();
         if($detect->isTablet()){
@@ -1061,6 +1075,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         } else {
             return false;
         }
+     }
     }
     
     protected function checkSafari() {
