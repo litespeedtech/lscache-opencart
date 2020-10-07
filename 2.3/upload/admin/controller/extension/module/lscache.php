@@ -228,7 +228,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         if ($this->user && $this->user->hasPermission('modify', 'extension/module/lscache')) {
             $lan = new Language();
             $lan->load('extension/module/lscache');
-            $button = '<li><a href="' . $this->url->link('extension/module/lscache', 'token=' . $this->session->data['token']) . '&action=purgeAllButton'  . '" data-toggle="tooltip" title="" class="btn" data-original-title="'. $lan->get('button_purgeAll') .'"><i class="fa fa-trash"></i><span class="hidden-xs hidden-sm hidden-md"> Purge All LiteSpeed Cache</span></a></li>';
+            $button = '<li><a href="' . $this->url->link('extension/module/lscache', 'token=' . $this->session->data['token'],true) . '&action=purgeAllButton'  . '" data-toggle="tooltip" title="" class="btn" data-original-title="'. $lan->get('button_purgeAll') .'"><i class="fa fa-trash"></i><span class="hidden-xs hidden-sm hidden-md"> Purge All LiteSpeed Cache</span></a></li>';
             $search = '<ul class="nav pull-right">';
             $output = str_replace($search, $search.$button, $output);
         }

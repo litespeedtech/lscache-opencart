@@ -20,11 +20,11 @@ class ControllerExtensionModuleLSCache extends Controller {
             $data["button_recacheAll"] .= $data["text_curl_not_support"];
         }
         
-        $currentLink = $this->url->link('extension/module/lscache', 'user_token=' . $this->session->data['user_token']);
+        $currentLink = $this->url->link('extension/module/lscache', 'user_token=' . $this->session->data['user_token'],true);
         $this->session->data['previouseURL'] = $currentLink;
-        $parentLink = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'].'&type=module');
+        $parentLink = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'].'&type=module',true);
         $siteUrl = new Url(HTTP_CATALOG, HTTPS_CATALOG);
-        $recacheLink = $siteUrl->link('extension/module/lscache/recache', 'user_token=' . $this->session->data['user_token']);
+        $recacheLink = $siteUrl->link('extension/module/lscache/recache', 'user_token=' . $this->session->data['user_token'],true);
         
         $action = 'index' ;
         if(isset($this->request->get['action'])){
@@ -226,7 +226,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         if ($this->user && $this->user->hasPermission('modify', 'extension/module/lscache')) {
             $lan = new Language();
             $lan->load('extension/module/lscache');
-            $button = '<li><a href="' . $this->url->link('extension/module/lscache', 'user_token=' . $this->session->data['user_token']) . '&action=purgeAllButton'  . '" data-toggle="tooltip" title="" class="btn" data-original-title="'. $lan->get('button_purgeAll') .'"><i class="fa fa-trash"></i><span class="hidden-xs hidden-sm hidden-md"> Purge All LiteSpeed Cache</span></a></li>';
+            $button = '<li><a href="' . $this->url->link('extension/module/lscache', 'user_token=' . $this->session->data['user_token'],true) . '&action=purgeAllButton'  . '" data-toggle="tooltip" title="" class="btn" data-original-title="'. $lan->get('button_purgeAll') .'"><i class="fa fa-trash"></i><span class="hidden-xs hidden-sm hidden-md"> Purge All LiteSpeed Cache</span></a></li>';
             $search = '<ul class="nav navbar-nav navbar-right">';
             $output = str_replace($search, $search.$button, $output);
         }
