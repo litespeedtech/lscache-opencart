@@ -698,7 +698,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         if(isset($this->request->get['from']) && ($this->request->get['from']=='cli')){
             $ip = $_SERVER['REMOTE_ADDR'];
             $serverIP = $_SERVER['SERVER_ADDR'];
-            if(($serverIP=="127.0.0.1") || ($ip=="127.0.0.1") || ($ip==$serverIP)){
+            if((substr($serverIP,0,7)=="127.0.0") || (substr($ip,0,7)=="127.0.0") || ($ip==$serverIP)){
                 $cli = true;
             }
         }
