@@ -31,7 +31,7 @@ class ControllerExtensionModuleLSCache extends Controller {
             return;
         }
         
-        $this->lscache =  (object) array('route' => $route, 'setting' => null, 'cacheEnabled' => false, 'pageCachable' => false, 'esiEnabled' => false, 'esiOn' => false,  'cacheTags'=> array(), 'lscInstance'=> null, 'pages'=>null );
+        $this->lscache =  (object) array('route' => $route, 'setting' => null, 'cacheEnabled' => false, 'pageCachable' => false, 'urlRule'=>false, 'esiEnabled' => false, 'esiOn' => false,  'cacheTags'=> array(), 'lscInstance'=> null, 'pages'=>null, 'includeUrls'=>null );
 
         $this->load->model('extension/module/lscache');
         $this->lscache->setting = $this->model_extension_module_lscache->getItems();
@@ -87,43 +87,68 @@ class ControllerExtensionModuleLSCache extends Controller {
                 $this->session->data['currency'] = $_COOKIE['currency'];
             }
         }
-        
+
+        $includeUrls = isset($this->lscache->setting['module_lscache_include_urls']) ? explode( PHP_EOL, $this->lscache->setting['module_lscache_include_urls']) : null;
+        $this->lscache->includeUrls=$includeUrls;
+        $excludeLoginUrls = isset($this->lscache->setting['module_lscache_exclude_login_urls']) ? explode( PHP_EOL, $this->lscache->setting['module_lscache_exclude_login_urls']) : null;
+        $excludeUrls = isset($this->lscache->setting['module_lscache_exclude_urls']) ? explode( PHP_EOL, $this->lscache->setting['module_lscache_exclude_urls']) : null;
+        $uri = trim($_SERVER['REQUEST_URI']);
+
+        if($includeUrls && in_array($uri, $includeUrls)){
+            $this->lscache->pageCachable = true;
+            $this->lscache->urlRule = true;
+        }
+
+        if($this->customer->isLogged() && $excludeLoginUrls && in_array($uri, $excludeLoginUrls)){
+            $this->lscache->pageCachable = false;
+            $this->lscache->urlRule = true;
+        }
+
+        if($excludeUrls && in_array($uri, $excludeUrls)){
+            $this->lscache->pageCachable = false;
+            $this->lscache->urlRule = true;
+        }
+       
         if($route!="extension/module/lscache/renderESI"){
             $this->onAfterRoute($route, $args);
         }
-       
+        
     }
 
 
     public function onAfterRoute($route, &$args) {
         
-        $pageKey = 'page_' . str_replace('/', '_', $route);
-        if(isset($this->lscache->pages[$pageKey])){
-            $pageSetting = $this->lscache->pages[$pageKey];
-        } else {
-            return;
+        if(!$this->lscache->pageCachable && !$this->lscache->urlRule){
+            $pageKey = 'page_' . str_replace('/', '_', $route);
+            if(isset($this->lscache->pages[$pageKey])){
+                $pageSetting = $this->lscache->pages[$pageKey];
+            } else {
+                return;
+            }
+
+            if($this->customer->isLogged()){
+                if($pageSetting['cacheLogin']){
+                    $this->lscache->pageCachable = true;
+                }
+                else{
+                    return;
+                }
+            } else if ($pageSetting['cacheLogout']) {
+                $this->lscache->pageCachable = true;
+            } else {
+                return;
+            }
+
+            $this->lscache->cacheTags[] = $pageKey;
         }
+
         //$this->log('route:' . $route);
         
         $this->event->unregister('controller/*/before', 'extension/module/lscache/onAfterInitialize');
-        $this->event->register('controller/'. $route . '/after', new Action('extension/module/lscache/onAfterRender'));
-        
-        if($this->customer->isLogged()){
-            if($pageSetting['cacheLogin']){
-                $this->lscache->pageCachable = true;
-            }
-            else{
-                return;
-            }
-        } else if ($pageSetting['cacheLogout']) {
-            $this->lscache->pageCachable = true;
-        } else {
-            return;
-        }
+        $this->event->register('controller/'. $route . '/after', new Action('extension/module/lscache/onAfterRender'));        
+
         //$this->log('page cachable:' . $this->lscache->pageCachable);
-        
-        $this->lscache->cacheTags[] = $pageKey;
-        
+                
         if($this->lscache->esiEnabled){
             $esiModules = $this->model_extension_module_lscache->getESIModules();
             $route = "";
@@ -728,7 +753,6 @@ class ControllerExtensionModuleLSCache extends Controller {
         $this->crawlUrls($urls, $cli);
         $urls = array();
 
-
         $this->load->model('extension/module/lscache');
         $pages = $this->model_extension_module_lscache->getPages();
 
@@ -771,7 +795,14 @@ class ControllerExtensionModuleLSCache extends Controller {
 		}
         $this->crawlUrls($urls, $cli);
         $urls = array();
-        
+
+        if($this->lscache->includeUrls){
+            foreach($$this->lscache->includeUrls as $uri){
+                $urls[] = $this->url->link($uri);
+            }
+        }
+        $this->crawlUrls($urls, $cli);
+
         echo 'recache information urls...' . ($cli ? '' : '<br>') . PHP_EOL;
 		$this->load->model('catalog/information');
 		foreach ($this->model_catalog_information->getInformations() as $result) {

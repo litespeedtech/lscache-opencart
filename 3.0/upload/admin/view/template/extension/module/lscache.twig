@@ -9,7 +9,7 @@
         <a href="{{ recacheAll }}" data-toggle="tooltip" title="{{ button_recacheAll }}" class="btn btn-success"><i class="fa fa-flash"></i></a>
         &nbsp;&nbsp;
         
-        <button type="submit" form="form-first-module" data-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa fa-save"></i></button>
+        <button type="submit" form="form-lscache-module" data-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa fa-save"></i></button>
         <!-- Back button -->
         <a href="{{ cancel }}" data-toggle="tooltip" title="{{ button_cancel }}" class="btn btn-default"><i class="fa fa-reply"></i></a></div>
       <!-- Heading is mentioned here -->
@@ -37,12 +37,13 @@
         <div class="alert alert-success alert-dismissible"><i class="fa fa-check-circle"></i> {{ success }}
           <button type="button" class="close" data-dismiss="alert">&times;</button>
         </div>
-        {% endif %}          
+        {% endif %}
         <!-- form starts here -->
         <form action="{{ self }}" method="post" enctype="multipart/form-data" id="form-lscache-module" class="form-horizontal">
           <ul class="nav nav-tabs">
             <li {{tabtool.check(tab, 'general', 'class')}}><a href="#tab-general" data-toggle="tab">{{ tab_general }}</a></li>
             <li {{tabtool.check(tab, 'pages', 'class')}}><a href="#tab-pages" data-toggle="tab">{{ tab_pages }}</a></li>
+            <li {{tabtool.check(tab, 'urls', 'class')}}><a href="#tab-urls" data-toggle="tab">{{ tab_urls }}</a></li>
             <li {{tabtool.check(tab, 'modules', 'class')}}><a href="#tab-modules" data-toggle="tab">{{ tab_modules }}</a></li>
           </ul>
           <div class="tab-content">
@@ -226,6 +227,40 @@
                 </div>
             </div>
 
+            <div class="tab-pane {{tabtool.check(tab, 'urls')}}" id="tab-urls">
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label" for="module_lscache_include_urls"><span data-toggle="tooltip" title="{{ help_include_urls }}">{{ entry_include_urls }}</span></label>
+                  <div class="col-sm-10">
+                    <textarea  name="module_lscache_include_urls" placeholder="{{ hint_include_urls }}" class="form-control" rows="3">{{ module_lscache_include_urls }}</textarea>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label" for="module_lscache_exclude_login_urls"><span data-toggle="tooltip" title="{{ help_exclude_login_urls }}">{{ entry_exclude_login_urls }}</span></label>
+                  <div class="col-sm-10">
+                    <textarea  name="module_lscache_exclude_login_urls" placeholder="{{ hint_exclude_login_urls }}" class="form-control" rows="3">{{ module_lscache_exclude_login_urls }}</textarea>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label" for="module_lscache_exclude_urls"><span data-toggle="tooltip" title="{{ help_exclude_urls }}">{{ entry_exclude_urls }}</span></label>
+                  <div class="col-sm-10">
+                    <textarea  name="module_lscache_exclude_urls" placeholder="{{ hint_exclude_urls }}" class="form-control" rows="3">{{ module_lscache_exclude_urls }}</textarea>
+                  </div>
+                </div>
+                  
+                <div class="form-group">
+                  <label class="col-sm-2 control-label" for="module_lscache_purge_url">
+                      <button type="submit" name='purgeURL' form="form-lscache-module" data-toggle="tooltip" class="btn btn-warning"><i class="fa fa-trash"> &nbsp; {{ entry_purge_urls }}</i></button>
+                  </label>
+                  <div class="col-sm-10">
+                    <textarea  name="lscache_purge_url" placeholder="{{ hint_purge_urls }}" class="form-control" rows="3">{{ lscache_purge_urls }}</textarea>
+                  </div>
+                </div>
+                
+            </div>
+                
             <div class="tab-pane {{tabtool.check(tab, 'modules')}}" id="tab-modules">
                 {% if serverType == 'LITESPEED_SERVER_OLS' %}
                 <div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> {{ esi_not_support }}

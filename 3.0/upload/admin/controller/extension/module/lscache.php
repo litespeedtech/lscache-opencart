@@ -50,8 +50,11 @@ class ControllerExtensionModuleLSCache extends Controller {
         
         if (!$this->validate()){
     		$this->log('Invalid Access', self::LOG_ERROR);
-        }
-        else if (($this->request->server['REQUEST_METHOD'] == 'POST')) {
+        } else if (($this->request->server['REQUEST_METHOD'] == 'POST') && isset($this->request->post['purgeURL'])) {
+            $msg = $this->purgeUrls();
+            $data["tab"] = "urls";
+            $data['success'] = $msg;
+        } else if (($this->request->server['REQUEST_METHOD'] == 'POST')) {
             $this->session->data['lscacheOption'] = "debug";
             $this->model_extension_module_lscache->editSetting('module_lscache', $this->request->post);
             if(isset($this->session->data['error'])){
@@ -631,6 +634,57 @@ class ControllerExtensionModuleLSCache extends Controller {
         return function_exists('curl_version');
     }
     
+
+    private function purgeUrls()
+    {
+        $url = $this->request->post['lscache_purge_url'];
+        if(empty($url) || empty(trim($url))){return;}
+        
+        $urls = explode("\n", str_replace(array("\r\n", "\r"), "\n", $url));
+
+        $success = 0;
+        $acceptCode = array(200, 201);
+
+        $domain = $_SERVER['SERVER_NAME'];
+        $host = $_SERVER['SERVER_ADDR'];
+        $header = ['Host: ' . $_SERVER['HTTP_HOST']];
+        $msg = [];
+
+        foreach ($urls as $key => $path) {
+
+            // Check that URL is in this domain
+            if (strpos($path, $domain) === FALSE) {
+                $msg[] = $path . ' - url not allowed';
+                continue;
+            }
+
+            $ch = curl_init();
+
+            // Replace domain with host, and set Header Host, to support Cloudflare or reverse proxies
+            $host_path = str_replace($domain, $host, $path);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+            curl_setopt($ch, CURLOPT_URL, $host_path);
+            curl_setopt($ch, CURLOPT_VERBOSE, true);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PURGE");
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+            $buffer = curl_exec($ch);
+            $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+            if (in_array($httpcode, $acceptCode)) {
+                $success++;
+            } else {
+                $msg[] = $path . ' - ' . ' purge failed' . $httpcode . curl_error($ch);
+            }
+            curl_close($ch);
+        }
+
+        $msg[] = $success . ' URL purged!';
+        return implode('<br>', $msg);
+    }
     
 }
 
