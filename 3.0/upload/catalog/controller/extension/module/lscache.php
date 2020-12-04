@@ -747,8 +747,6 @@ class ControllerExtensionModuleLSCache extends Controller
         echo 'Recache may take several minutes' . ($cli ? '' : '<br>') . PHP_EOL;
         flush();
 
-        flush();
-
         echo 'recache site urls...' . ($cli ? '' : '<br>') . PHP_EOL;
 
         $urls = array();
@@ -758,6 +756,11 @@ class ControllerExtensionModuleLSCache extends Controller
         $urls[] = $this->url->link('product/manufacturer');
         $urls[] = HTTP_SERVER;
         $urls[] = HTTP_SERVER . 'index.php';
+        if ($this->lscache->includeUrls) {
+            foreach ($$this->lscache->includeUrls as $uri) {
+                $urls[] = $this->url->link($uri);
+            }
+        }
         $this->crawlUrls($urls, $cli);
         $urls = array();
 
@@ -804,13 +807,15 @@ class ControllerExtensionModuleLSCache extends Controller
         $this->crawlUrls($urls, $cli);
         $urls = array();
 
-        if ($this->lscache->includeUrls) {
-            foreach ($$this->lscache->includeUrls as $uri) {
-                $urls[] = $this->url->link($uri);
-            }
+        $this->crawlUrls($urls, $cli);
+        echo 'recache manufacturers urls...' . ($cli ? '' : '<br>') . PHP_EOL;
+        $this->load->model('catalog/manufacturer');
+        foreach ($this->model_catalog_manufacturer->getManufacturers() as $result) {
+            $urls[] = $this->url->link('product/manufacturer/info', 'manufacturer_id=' . $result['manufacturer_id']);
         }
         $this->crawlUrls($urls, $cli);
-
+        $urls = array();
+        
         echo 'recache information urls...' . ($cli ? '' : '<br>') . PHP_EOL;
         $this->load->model('catalog/information');
         foreach ($this->model_catalog_information->getInformations() as $result) {
