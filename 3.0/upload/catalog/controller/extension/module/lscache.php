@@ -1108,15 +1108,17 @@ class ControllerExtensionModuleLSCache extends Controller
                 return false;
             }
         } else {
-            include_once(DIR_SYSTEM . 'library/Mobile_Detect/Mobile_Detect.php');
-            $detect = new Mobile_Detect();
-            if ($detect->isTablet()) {
-                return 'tablet';
-            } else if ($detect->isMobile()) {
-                return 'mobile';
-            } else {
-                return false;
-            }
+            //only use .htaccess rule to mark separate cache copy for mobile view
+            return false;
+//            include_once(DIR_SYSTEM . 'library/Mobile_Detect/Mobile_Detect.php');
+//            $detect = new Mobile_Detect();
+//            if ($detect->isTablet()) {
+//                return 'tablet';
+//            } else if ($detect->isMobile()) {
+//                return 'mobile';
+//            } else {
+//                return false;
+//            }
         }
     }
 
