@@ -757,7 +757,7 @@ class ControllerExtensionModuleLSCache extends Controller
         $urls[] = HTTP_SERVER;
         $urls[] = HTTP_SERVER . 'index.php';
         if ($this->lscache->includeUrls) {
-            foreach ($$this->lscache->includeUrls as $uri) {
+            foreach ($this->lscache->includeUrls as $uri) {
                 $urls[] = $this->url->link($uri);
             }
         }
@@ -782,7 +782,7 @@ class ControllerExtensionModuleLSCache extends Controller
         $categories_1 = $this->model_catalog_category->getCategories(0);
         $categoryPath = array();
 
-        echo 'recache catagory urls...' . ($cli ? '' : '<br>') . PHP_EOL;
+        echo 'recache category urls...' . ($cli ? '' : '<br>') . PHP_EOL;
         foreach ($categories_1 as $category_1) {
             $categoryPath[$category_1['category_id']] = $category_1['category_id'];
 
