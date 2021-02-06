@@ -379,9 +379,17 @@ class ControllerExtensionModuleLSCache extends Controller
 
     protected function checkVary()
     {
+        if ($this->session->data['currency'] != $this->config->get('config_currency')) {
+            $vary['currency'] = $this->session->data['currency'];
+        }
 
+        if ((isset($this->session->data['language'])) && ($this->session->data['language'] != $this->config->get('config_language'))) {
+            $vary['language'] = $this->session->data['language'];
+        }
+
+        
         //cookie not enabled
-        if ( !$this->checkCookiesEnabled() ){
+        if ((count($vary) > 0) && !$this->checkCookiesEnabled() ){
             return;
         }
 
@@ -397,14 +405,6 @@ class ControllerExtensionModuleLSCache extends Controller
 
         if (isset($this->lscache->setting['module_lscache_vary_mobile']) && ($this->lscache->setting['module_lscache_vary_mobile'] == '1') && ($device = $this->checkMobile())) {
             $vary['device'] = $device;
-        }
-
-        if ($this->session->data['currency'] != $this->config->get('config_currency')) {
-            $vary['currency'] = $this->session->data['currency'];
-        }
-
-        if ((isset($this->session->data['language'])) && ($this->session->data['language'] != $this->config->get('config_language'))) {
-            $vary['language'] = $this->session->data['language'];
         }
 
         if ((count($vary) == 0) && (isset($_COOKIE['lsc_private']) || defined('LSC_PRIVATE'))) {
