@@ -379,6 +379,8 @@ class ControllerExtensionModuleLSCache extends Controller
 
     protected function checkVary()
     {
+        $vary = array();
+
         if ($this->session->data['currency'] != $this->config->get('config_currency')) {
             $vary['currency'] = $this->session->data['currency'];
         }
@@ -393,7 +395,6 @@ class ControllerExtensionModuleLSCache extends Controller
             return;
         }
 
-        $vary = array();
 
         if ($this->customer->isLogged() && isset($this->lscache->setting['module_lscache_vary_login']) && ($this->lscache->setting['module_lscache_vary_login'] == '1')) {
             $vary['session'] = 'loggedIn';
