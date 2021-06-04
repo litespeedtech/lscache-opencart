@@ -426,7 +426,7 @@ class ControllerExtensionModuleLSCache extends Controller
             return;
         }
 
-        $this->lscache->cacheTags[] = 'Product';
+        //$this->lscache->cacheTags[] = 'Product';
     }
 
     public function getCategories($route, &$args, &$output)
@@ -435,7 +435,7 @@ class ControllerExtensionModuleLSCache extends Controller
             return;
         }
 
-        $this->lscache->cacheTags[] = 'Category';
+        //$this->lscache->cacheTags[] = 'Category';
     }
 
     public function getInformations($route, &$args, &$output)
@@ -444,7 +444,7 @@ class ControllerExtensionModuleLSCache extends Controller
             return;
         }
 
-        $this->lscache->cacheTags[] = 'Information';
+        //$this->lscache->cacheTags[] = 'Information';
     }
 
     public function getManufacturers($route, &$args, &$output)
@@ -453,7 +453,7 @@ class ControllerExtensionModuleLSCache extends Controller
             return;
         }
 
-        $this->lscache->cacheTags[] = 'Manufacturer';
+        //$this->lscache->cacheTags[] = 'Manufacturer';
     }
 
     public function getProduct($route, &$args, &$output)
