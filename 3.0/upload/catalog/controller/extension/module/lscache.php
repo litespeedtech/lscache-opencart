@@ -786,20 +786,24 @@ class ControllerExtensionModuleLSCache extends Controller
         echo 'recache category urls...' . ($cli ? '' : '<br>') . PHP_EOL;
         foreach ($categories_1 as $category_1) {
             $categoryPath[$category_1['category_id']] = $category_1['category_id'];
-
             $categories_2 = $this->model_catalog_category->getCategories($category_1['category_id']);
-
             foreach ($categories_2 as $category_2) {
                 $categoryPath[$category_2['category_id']] = $category_1['category_id'] . '_' . $category_2['category_id'];
-
                 $categories_3 = $this->model_catalog_category->getCategories($category_2['category_id']);
-
                 foreach ($categories_3 as $category_3) {
                     $categoryPath[$category_3['category_id']] = $category_1['category_id'] . '_' . $category_2['category_id'] . '_' . $category_3['category_id'];
-
+                    $categories_4 = $this->model_catalog_category->getCategories($category_3['category_id']);
+                    foreach ($categories_4 as $category_4) {
+                        $categoryPath[$category_4['category_id']] = $category_1['category_id'] . '_' . $category_2['category_id'] . '_' . $category_3['category_id'] . '_' . $category_4['category_id'];
+                        $categories_5 = $this->model_catalog_category->getCategories($category_4['category_id']);
+                        foreach ($categories_5 as $category_5) {
+                            $categoryPath[$category_5['category_id']] = $category_1['category_id'] . '_' . $category_2['category_id'] . '_' . $category_3['category_id'] . '_' . $category_4['category_id'] . '_' . $category_5['category_id'];
+                            $urls[] = $this->url->link('product/category', 'path=' . $category_1['category_id'] . '_' . $category_2['category_id'] . '_' . $category_3['category_id'] . '_' . $category_4['category_id'] . '_' . $category_5['category_id']);
+                        }
+                        $urls[] = $this->url->link('product/category', 'path=' . $category_1['category_id'] . '_' . $category_2['category_id'] . '_' . $category_3['category_id'] . '_' . $category_4['category_id']);
+                    }
                     $urls[] = $this->url->link('product/category', 'path=' . $category_1['category_id'] . '_' . $category_2['category_id'] . '_' . $category_3['category_id']);
                 }
-
                 $urls[] = $this->url->link('product/category', 'path=' . $category_1['category_id'] . '_' . $category_2['category_id']);
             }
 
