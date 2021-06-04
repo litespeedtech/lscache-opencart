@@ -801,12 +801,21 @@ class ControllerExtensionModuleLSCache extends Controller
                             $urls[] = $this->url->link('product/category', 'path=' . $category_1['category_id'] . '_' . $category_2['category_id'] . '_' . $category_3['category_id'] . '_' . $category_4['category_id'] . '_' . $category_5['category_id']);
                         }
                         $urls[] = $this->url->link('product/category', 'path=' . $category_1['category_id'] . '_' . $category_2['category_id'] . '_' . $category_3['category_id'] . '_' . $category_4['category_id']);
+                        $filter_data = array('filter_category_id' => $category_4['category_id']);
+                        $num_pages = $this->CountNumberOfPages($filter_data);
+                        for ($num_page = 2; $num_page <= $num_pages; $num_page++) {
+                            $urls[] = $this->url->link('product/category', 'path=' . $category_1['category_id'] . '_' . $category_2['category_id'] . '_' . $category_3['category_id'] . '_' . $category_4['category_id'] . '&page=' . $num_page);
+                        }
                     }
                     $urls[] = $this->url->link('product/category', 'path=' . $category_1['category_id'] . '_' . $category_2['category_id'] . '_' . $category_3['category_id']);
+                    $filter_data = array('filter_category_id' => $category_3['category_id']);
+                    $num_pages = $this->CountNumberOfPages($filter_data);
+                    for ($num_page = 2; $num_page <= $num_pages; $num_page++) {
+                        $urls[] = $this->url->link('product/category', 'path=' . $category_1['category_id'] . '_' . $category_2['category_id'] . '_' . $category_3['category_id'] . '&page=' . $num_page);
+                    }
                 }
                 $urls[] = $this->url->link('product/category', 'path=' . $category_1['category_id'] . '_' . $category_2['category_id']);
             }
-
             $urls[] = $this->url->link('product/category', 'path=' . $category_1['category_id']);
         }
         $this->crawlUrls($urls, $cli);
@@ -1150,5 +1159,38 @@ class ControllerExtensionModuleLSCache extends Controller
         }
         return FALSE;
     }
+    
+
+    protected function CountNumberOfPages($filter_data) {
+
+        if (isset($this->request->get['limit'])) {
+            $limit = (int) $this->request->get['limit'];
+        } else if (defined('JOURNAL3_ACTIVE')) {
+            $limit = $this->journal3->themeConfig('product_limit');
+        } else {
+            return 1;
+        }
+
+        if (defined('JOURNAL3_ACTIVE')) {
+            $this->load->model('journal3/filter');
+
+            $filter_data = array_merge($this->model_journal3_filter->parseFilterData(), $filter_data);
+
+            $this->model_journal3_filter->setFilterData($filter_data);
+
+            \Journal3\Utils\Profiler::start('journal3/filter/total_products');
+
+            $product_total = $this->model_journal3_filter->getTotalProducts();
+
+            \Journal3\Utils\Profiler::end('journal3/filter/total_products');
+        } else {
+            $product_total = $this->model_catalog_product->getTotalProducts($filter_data);
+        }
+
+        $num_pages = ceil($product_total / $limit);
+
+        return $num_pages;
+    }
+    
 
 }
