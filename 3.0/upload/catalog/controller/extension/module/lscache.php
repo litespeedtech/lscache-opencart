@@ -248,7 +248,12 @@ class ControllerExtensionModuleLSCache extends Controller
 
         if (function_exists('http_response_code')) {
             $httpcode = http_response_code();
-            if ($httpcode > 201) {
+            if ($httpcode == 404) {
+                $this->log("404 Page Not Cachable:");
+                if (!isset($this->lscache->setting['module_lscache_cache404']) || ($this->lscache->setting['module_lscache_404']=='0') ) {
+                    return;
+                }
+            }  else if ($httpcode > 201) {
                 $this->log("Http Response Code Not Cachable:" . $httpcode);
                 return;
             }

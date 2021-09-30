@@ -51,6 +51,7 @@ $_['entry_exclude_login_urls']     = 'Exclude URLs for logged-in users';
 $_['entry_exclude_urls']     = 'Exclude URLs';
 $_['entry_purge_urls']     = 'Purge URLs';
 $_['entry_purge_category']     = 'Purge Category Cache on Product Save';
+$_['entry_ajax_compare_lscache_cache404']     = 'Cache 404 Pages';
 
 $_['help_public_ttl']     = 'LiteSpeed page cache lifetime in seconds';
 $_['help_login_cachable']     = 'If disabled, all web page cache will not be available for logged-in users';
