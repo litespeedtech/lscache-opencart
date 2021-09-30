@@ -50,7 +50,7 @@ $_['entry_include_urls']     = 'Include URLs';
 $_['entry_exclude_login_urls']     = 'Exclude URLs for logged-in users';
 $_['entry_exclude_urls']     = 'Exclude URLs';
 $_['entry_purge_urls']     = 'Purge URLs';
-
+$_['entry_purge_category']     = 'Purge Category Cache on Product Save';
 
 $_['help_public_ttl']     = 'LiteSpeed page cache lifetime in seconds';
 $_['help_login_cachable']     = 'If disabled, all web page cache will not be available for logged-in users';
@@ -64,6 +64,7 @@ $_['hint_include_urls'] = "Please input one URL per line. \neg: \n/index.php?rou
 $_['hint_exclude_login_urls'] = "Please input one URL per line. \neg: \n/account/register";
 $_['hint_exclude_urls'] = "Please input one URL per line. \neg: \n/product/list/latest";
 $_['hint_purge_urls'] = "Please input one full URL per line. \neg: \nhttps://www.your.site/product/nostock/item1";
+$_['help_purge_category']     = 'Purge Product Category cache after saving an Product';
 
 $_['help_purge_system_cache']     = 'Purge all Opencart system cache after purge all LiteSpeed Cache';
 $_['help_esi_ttl']     = 'ESI module cache lifetime in seconds';

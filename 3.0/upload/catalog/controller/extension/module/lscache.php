@@ -471,6 +471,10 @@ class ControllerExtensionModuleLSCache extends Controller
             return;
         }
 
+        if (isset($this->lscache->setting['module_lscache_purge_category']) && ($this->lscache->setting['module_lscache_purge_category']=='0') && (str_pos($this->lscache->route,'category')==false)) {
+            return;
+        }
+        
         $this->lscache->cacheTags[] = 'C_' . $args[0];
     }
 
