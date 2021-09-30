@@ -17,9 +17,9 @@ class ControllerExtensionModuleLSCache extends Controller
     public function onAfterInitialize($route, &$args)
     {
 
-        //$this->log->write('init:' . $route . PHP_EOL);
+        $this->log('init:' . $route . PHP_EOL, self::LOG_DEBUG);
 
-        if ($this->lscache == null) {
+        if (($this->lscache == null) || (!isset($this->cache->cacheEnabled))) {
             //pass
         } else if ($route == "extension/module/lscache/renderESI") {
             return; //ESI render
@@ -141,7 +141,7 @@ class ControllerExtensionModuleLSCache extends Controller
             $this->lscache->cacheTags[] = $pageKey;
         }
 
-        //$this->log('route:' . $route);
+        $this->log('route:' . $route . PHP_EOL , self::LOG_DEBUG);
 
         $this->event->unregister('controller/*/before', 'extension/module/lscache/onAfterInitialize');
         $this->event->register('controller/' . $route . '/after', new Action('extension/module/lscache/onAfterRender'));
