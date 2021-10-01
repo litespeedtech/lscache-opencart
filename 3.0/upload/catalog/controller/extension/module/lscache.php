@@ -267,7 +267,7 @@ class ControllerExtensionModuleLSCache extends Controller
         $this->log();
     }
 
-    public function checkError(&$route, &$data, &$code){
+    public function checkError($route, &$data, &$code){
         if ($this->lscache == null) {
             http_response_code(403);
             return;
@@ -485,7 +485,7 @@ class ControllerExtensionModuleLSCache extends Controller
             return;
         }
 
-        if (isset($this->lscache->setting['module_lscache_purge_category']) && ($this->lscache->setting['module_lscache_purge_category']=='0') && (str_pos($this->lscache->route,'category')==false)) {
+        if (isset($this->lscache->setting['module_lscache_purge_category']) && ($this->lscache->setting['module_lscache_purge_category']=='0') && (strpos($this->lscache->route,'category')==false)) {
             return;
         }
         

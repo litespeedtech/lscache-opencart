@@ -257,6 +257,9 @@ class ModelExtensionModuleLSCache extends Model {
         $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'module_lscache_vary_login', '0', '0')") ;
         $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'module_lscache_vary_mobile', '0', '0')") ;
         $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'module_lscache_vary_safari', '0', '0')") ;
+		$this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'module_lscache_purge_category', '0', '0')") ;
+		$this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'module_lscache_cache404', '0', '0')") ;
+
 
         $this->cache->delete('lscache_pages');
         $this->cache->delete('lscache_modules');
