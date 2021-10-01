@@ -117,7 +117,6 @@ class ControllerExtensionModuleLSCache extends Controller
 
     public function onAfterRoute($route, &$args)
     {
-
         if (!$this->lscache->pageCachable && !$this->lscache->urlRule) {
             $pageKey = 'page_' . str_replace('/', '_', $route);
             if (isset($this->lscache->pages[$pageKey])) {
@@ -241,22 +240,18 @@ class ControllerExtensionModuleLSCache extends Controller
 
     public function onAfterRender($route, &$args, &$output)
     {
-
-        if (($this->lscache == null) || (!$this->lscache->pageCachable)) {
+        if (($this->lscache == null) || (!$this->lscache->cacheEnabled)) {
             return;
         }
-
+        
+        $httpcode=200;
         if (function_exists('http_response_code')) {
             $httpcode = http_response_code();
-            if ($httpcode == 404) {
-                $this->log("404 Page Not Cachable:");
-                if (!isset($this->lscache->setting['module_lscache_cache404']) || ($this->lscache->setting['module_lscache_404']=='0') ) {
-                    return;
-                }
-            }  else if ($httpcode > 201) {
-                $this->log("Http Response Code Not Cachable:" . $httpcode);
-                return;
-            }
+        }
+        
+        if ($httpcode > 201) {
+            $this->log("Http Response Code Not Cachable:" . $httpcode);
+            return;
         }
 
         $this->checkVary();
@@ -272,6 +267,20 @@ class ControllerExtensionModuleLSCache extends Controller
         $this->log();
     }
 
+    public function checkError(&$route, &$data, &$code){
+        if ($this->lscache == null) {
+            http_response_code(403);
+            return;
+        }
+
+        if (($route == 'error/not_found') && isset($this->lscache->setting['module_lscache_cache404']) && ($this->lscache->setting['module_lscache_cache404']=='1') ) {
+            $cacheTimeout = isset($this->lscache->setting['module_lscache_public_ttl']) ? $this->lscache->setting['module_lscache_public_ttl'] : 120000;
+            $this->lscache->lscInstance->setPublicTTL($cacheTimeout);
+            $this->lscache->lscInstance->cachePublic( 'p_httpcode_404' );
+            return;
+        }
+    }
+    
     public function renderESI()
     {
         if (($this->lscache == null) || (!$this->lscache->cacheEnabled)) {
