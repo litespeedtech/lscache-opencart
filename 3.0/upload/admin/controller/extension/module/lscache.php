@@ -283,6 +283,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         $this->model_setting_event->addEvent('lscache_user_logout', 'catalog/model/account/customer/deleteLoginAttempts/after', 'extension/module/lscache/onUserAfterLogout');
         $this->model_setting_event->addEvent('lscache_currency_change', 'catalog/controller/common/currency/currency/before', 'extension/module/lscache/editCurrency');
         $this->model_setting_event->addEvent('lscache_language_change', 'catalog/controller/common/language/language/before', 'extension/module/lscache/editLanguage');
+        $this->model_setting_event->addEvent('lscache_check_error', 'catalog/view/error/*/before', 'extension/module/lscache/checkError');
         
         $this->model_extension_module_lscache->installLSCache();
         $this->initHtaccess();
@@ -341,11 +342,11 @@ class ControllerExtensionModuleLSCache extends Controller {
 		$this->model_setting_event->deleteEventByCode('lscache_information_edit');
 		$this->model_setting_event->deleteEventByCode('lscache_information_delete');
 
-        $this->model_setting_event->deleteEventByCode('lscache_checkout_confirm');
-        $this->model_setting_event->deleteEventByCode('lscache_checkout_success');
-        $this->model_setting_event->deleteEventByCode('lscache_cart_add');
-        $this->model_setting_event->deleteEventByCode('lscache_cart_edit');
-        $this->model_setting_event->deleteEventByCode('lscache_cart_remove');
+                $this->model_setting_event->deleteEventByCode('lscache_checkout_confirm');
+                $this->model_setting_event->deleteEventByCode('lscache_checkout_success');
+                $this->model_setting_event->deleteEventByCode('lscache_cart_add');
+                $this->model_setting_event->deleteEventByCode('lscache_cart_edit');
+                $this->model_setting_event->deleteEventByCode('lscache_cart_remove');
 		$this->model_setting_event->deleteEventByCode('lscache_add_ajax');
 		$this->model_setting_event->deleteEventByCode('lscache_wishlist_display');
 		$this->model_setting_event->deleteEventByCode('lscache_wishlist_edit');
@@ -357,6 +358,7 @@ class ControllerExtensionModuleLSCache extends Controller {
 		$this->model_setting_event->deleteEventByCode('lscache_user_logout');
 		$this->model_setting_event->deleteEventByCode('lscache_currency_change');
 		$this->model_setting_event->deleteEventByCode('lscache_language_change');
+		$this->model_setting_event->deleteEventByCode('lscache_check_error');
       
         $this->clearHtaccess();
         $lscInstance = $this->lscacheInit();
