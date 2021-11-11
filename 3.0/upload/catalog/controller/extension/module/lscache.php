@@ -274,6 +274,12 @@ class ControllerExtensionModuleLSCache extends Controller
         }
 
         if (($route == 'error/not_found') && isset($this->lscache->setting['module_lscache_cache404']) && ($this->lscache->setting['module_lscache_cache404']=='1') ) {
+            $url_data = $this->request->get;
+            $route = trim($url_data['route']);
+            if($route == 'checkout/cart'){
+                return;
+            }
+
             $cacheTimeout = isset($this->lscache->setting['module_lscache_public_ttl']) ? $this->lscache->setting['module_lscache_public_ttl'] : 120000;
             $this->lscache->lscInstance->setPublicTTL($cacheTimeout);
             $this->lscache->lscInstance->cachePublic( 'p_httpcode_404' );
