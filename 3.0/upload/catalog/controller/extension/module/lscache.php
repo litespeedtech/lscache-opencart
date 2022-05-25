@@ -257,10 +257,10 @@ class ControllerExtensionModuleLSCache extends Controller
         $this->checkVary();
 
         if (!isset($this->lscache->setting['module_lscache_public_ttl'])) {
-            $cacheTimeout = 120000;
+            $cacheTimeout = 1200000;
         } else {
             $cacheTimeout = $this->lscache->setting['module_lscache_public_ttl'];
-            $cacheTimeout = empty($cacheTimeout) ? 120000 : $cacheTimeout;
+            $cacheTimeout = empty($cacheTimeout) ? 1200000 : $cacheTimeout;
         }
         $this->lscache->lscInstance->setPublicTTL($cacheTimeout);
         $this->lscache->lscInstance->cachePublic($this->lscache->cacheTags, $this->lscache->esiOn);
@@ -280,7 +280,7 @@ class ControllerExtensionModuleLSCache extends Controller
                 return;
             }
 
-            $cacheTimeout = isset($this->lscache->setting['module_lscache_public_ttl']) ? $this->lscache->setting['module_lscache_public_ttl'] : 120000;
+            $cacheTimeout = isset($this->lscache->setting['module_lscache_public_ttl']) ? $this->lscache->setting['module_lscache_public_ttl'] : 1200000;
             $this->lscache->lscInstance->setPublicTTL($cacheTimeout);
             $this->lscache->lscInstance->cachePublic( 'p_httpcode_404' );
             return;
