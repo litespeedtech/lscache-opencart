@@ -17,7 +17,7 @@ class ControllerExtensionModuleLSCache extends Controller
     public function onAfterInitialize($route, &$args)
     {
 
-        $this->log('init:' . $route . PHP_EOL, self::LOG_DEBUG);
+        //$this->log('init:' . $route . PHP_EOL, self::LOG_DEBUG);
 
         if (($this->lscache == null) || (!isset($this->cache->cacheEnabled))) {
             //pass
