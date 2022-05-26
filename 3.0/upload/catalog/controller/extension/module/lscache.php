@@ -871,6 +871,9 @@ class ControllerExtensionModuleLSCache extends Controller
             }
 
             $urls[] = $this->url->link('product/product', 'product_id=' . $result['product_id']);
+            if (defined('JOURNAL3_ACTIVE')) {
+                $urls[] = $this->url->link('journal3/product', 'product_id=' . $result['product_id'] . '&popup=quickview');
+            }            
         }
 
         $this->crawlUrls($urls, $cli);
