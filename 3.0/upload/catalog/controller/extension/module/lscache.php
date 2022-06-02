@@ -978,6 +978,7 @@ class ControllerExtensionModuleLSCache extends Controller
                     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
                     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
                     curl_setopt($ch, CURLOPT_MAXREDIRS, 1);
+                    curl_setopt($ch, CURLOPT_ENCODING, "");
                     curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
 
                     if ($cli && ($userAgent == 'lscache_runner')) {
