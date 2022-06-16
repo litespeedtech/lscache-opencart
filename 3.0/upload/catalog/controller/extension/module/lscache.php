@@ -577,8 +577,10 @@ class ControllerExtensionModuleLSCache extends Controller
             $output .= '<script>$(document).ready(function() { try {  ' . $ajax . ' } catch(err){console.log(err.message);}});</script>';
         }
 
-        $comment = '<!-- LiteSpeed Cache created with user_agent: ' . $_SERVER['HTTP_USER_AGENT'] . ' -->' . PHP_EOL;
-        $output = $comment . $output;
+        if ( isset($_SERVER['HTTP_USER_AGENT']) ) {
+            $comment = '<!-- LiteSpeed Cache created with user_agent: ' . $_SERVER['HTTP_USER_AGENT'] . ' -->' . PHP_EOL;
+            $output = $comment . $output;
+        }
     }
 
     public function checkWishlist($route, &$args)
