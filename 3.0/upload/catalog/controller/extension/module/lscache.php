@@ -919,7 +919,7 @@ class ControllerExtensionModuleLSCache extends Controller
         } else {
             $cookies = array('');
         }
-
+        
         $this->load->model('localisation/language');
         $languages = array();
         $results = $this->model_localisation_language->getLanguages();
@@ -965,10 +965,20 @@ class ControllerExtensionModuleLSCache extends Controller
 
             $url = str_replace('&amp;', '&', $url);
 
-            foreach ($cookies as $cookie) {
-                foreach ($recacheUserAgents as $userAgent) {
+            foreach ($recacheUserAgents as $userAgent) {
+                $cookies1 = $cookies;
+                
+                if (isset($this->lscache->setting['module_lscache_vary_mobile']) && ($this->lscache->setting['module_lscache_vary_mobile'] == '1') && $this->checkMobile($userAgent)) {
+                    $device = $this->checkMobile($userAgent);
+                    $cookies1[] = '_lscache_vary=device%3A' . $device . ';lsc_private=e70f67d087a65a305e80267ba3bfbc97' ;
+                }
 
-                    $this->log('crawl:' . $url . '    cookie:' . $cookie);
+                if(isset($this->lscache->setting['module_lscache_vary_safari']) && ($this->lscache->setting['module_lscache_vary_safari'] == '1') && $this->checkSafari($userAgent)) {
+                    $cookies1[] = '_lscache_vary=browser%3Asafari;lsc_private=e70f67d087a65a305e80267ba3bfbc97' ;
+                }
+                
+                foreach ($cookies1 as $cookie) {
+                    $this->log('crawl:' . $url . '  useragent:' . $userAgent .  '    cookie:' . $cookie);
                     $start = microtime();
                     $ch = curl_init();
                     curl_setopt($ch, CURLOPT_URL, $url);
@@ -1134,17 +1144,21 @@ class ControllerExtensionModuleLSCache extends Controller
         return $data;
     }
 
-    protected function checkMobile()
+    protected function checkMobile($ua='')
     {
+        if(empty($ua)){
+            $ua = $_SERVER['HTTP_USER_AGENT'];
+        }
+
         if (defined('JOURNAL3_ACTIVE')) {
             //error_log(print_r('Journal3 mobile detection algorithm used',true));
-            if (strpos($_SERVER['HTTP_USER_AGENT'], 'iPhone') !== FALSE) {
+            if (strpos($ua, 'iPhone') !== FALSE) {
                 return 'mobile';
-            } elseif (strpos($_SERVER['HTTP_USER_AGENT'], 'iPad') !== FALSE) {
+            } elseif (strpos($ua, 'iPad') !== FALSE) {
                 return 'tablet';
-            } elseif ((strpos($_SERVER['HTTP_USER_AGENT'], 'Android') !== FALSE) && (strpos($_SERVER['HTTP_USER_AGENT'], 'Chrome') !== FALSE) && (strpos($_SERVER['HTTP_USER_AGENT'], 'Mobile') !== FALSE)) {
+            } elseif ((strpos($ua, 'Android') !== FALSE) && (strpos($_SERVER['HTTP_USER_AGENT'], 'Chrome') !== FALSE) && (strpos($_SERVER['HTTP_USER_AGENT'], 'Mobile') !== FALSE)) {
                 return 'mobile';
-            } elseif ((strpos($_SERVER['HTTP_USER_AGENT'], 'Android') !== FALSE) && (strpos($_SERVER['HTTP_USER_AGENT'], 'Chrome') !== FALSE) && (strpos($_SERVER['HTTP_USER_AGENT'], 'Mobile') == FALSE)) {
+            } elseif ((strpos($ua, 'Android') !== FALSE) && (strpos($_SERVER['HTTP_USER_AGENT'], 'Chrome') !== FALSE) && (strpos($_SERVER['HTTP_USER_AGENT'], 'Mobile') == FALSE)) {
                 return 'tablet';
             } else {
                 return false;
@@ -1164,17 +1178,20 @@ class ControllerExtensionModuleLSCache extends Controller
         }
     }
 
-    protected function checkSafari()
+    protected function checkSafari($ua='')
     {
-
-        if (strpos($_SERVER['HTTP_USER_AGENT'], 'CriOS') !== FALSE) {
+        if(empty($ua)){
+            $ua = $_SERVER['HTTP_USER_AGENT'];
+        }
+        
+        if (strpos($ua, 'CriOS') !== FALSE) {
             return FALSE;
         }
 
-        if (strpos($_SERVER['HTTP_USER_AGENT'], 'Chrome') !== FALSE) {
+        if (strpos($ua, 'Chrome') !== FALSE) {
             return FALSE;
         }
-        if (strpos($_SERVER['HTTP_USER_AGENT'], 'Safari') !== FALSE) {
+        if (strpos($ua, 'Safari') !== FALSE) {
             return TRUE;
         }
         return FALSE;
