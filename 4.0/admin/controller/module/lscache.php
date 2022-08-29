@@ -1,0 +1,703 @@
+<?php
+
+/*
+ *  @since      1.0.0
+ *  @author     LiteSpeed Technologies <info@litespeedtech.com>
+ *  @copyright  Copyright (c) 2017-2018 LiteSpeed Technologies, Inc. (https://www.litespeedtech.com)
+ *  @license    https://opensource.org/licenses/GPL-3.0
+ */
+
+namespace Opencart\Admin\Controller\Extension\Litespeed\Module;
+use Opencart\System\Library\Language;
+use Opencart\System\Library\Url;
+
+class Lscache extends \Opencart\System\Engine\Controller {
+
+    const LOG_ERROR = 3;
+    const LOG_INFO = 6;
+    const LOG_DEBUG = 8;
+
+    private $error = array();
+
+    public function index() {
+
+        $data = $this->load->language('extension/litespeed/module/lscache');
+        if (!$this->isCurl()) {
+            $data["button_recacheAll"] .= $data["text_curl_not_support"];
+        }
+
+        $currentLink = $this->url->link('extension/litespeed/module/lscache', 'user_token=' . $this->session->data['user_token'], true);
+        $this->session->data['previouseURL'] = $currentLink;
+        $parentLink = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=module', true);
+        $surl = HTTP_CATALOG;
+        if(defined('HTTPS_CATALOG')){
+            $surl = HTTPS_CATALOG;
+        }
+        $siteurl = new Url($surl);
+        $recacheLink = $siteurl->link('extension/litespeed/module/lscache|recache', 'user_token=' . $this->session->data['user_token'], true);
+
+        $action = 'index';
+        if (isset($this->request->get['action'])) {
+            $action = $this->request->get['action'];
+        }
+        $data['action'] = $action;
+
+        if ($action == 'purgeAllButton') {
+            $lscInstance = $this->lscacheInit(true);
+        } else {
+            $lscInstance = $this->lscacheInit();
+        }
+        $data["serverType"] = LITESPEED_SERVER_TYPE;
+
+        if (isset($this->request->get['tab'])) {
+            $data["tab"] = $this->request->get['tab'];
+        } else {
+            $data["tab"] = "general";
+        }
+
+        $this->load->model('extension/litespeed/module/lscache');
+        $oldSetting = $this->model_extension_litespeed_module_lscache->getItems();
+
+        if (!$this->validate()) {
+            $this->log('Invalid Access', self::LOG_ERROR);
+        } else if (($this->request->server['REQUEST_METHOD'] == 'POST') && isset($this->request->post['purgeURL'])) {
+            $msg = $this->purgeUrls();
+            $data["tab"] = "urls";
+            $data['success'] = $msg;
+        } else if (($this->request->server['REQUEST_METHOD'] == 'POST')) {
+            $this->session->data['lscacheOption'] = "debug";
+            $this->model_extension_litespeed_module_lscache->editSetting('module_lscache', $this->request->post);
+            if (isset($this->session->data['error'])) {
+                $data['error_warning'] = $this->session->data['error'];
+                $this->session->data['error'] = "";
+            } else {
+                $this->session->data['success'] = $this->language->get('text_success');
+                $data['success'] = $this->language->get('text_success');
+            }
+
+            if (isset($this->session->data["previouseTab"])) {
+                $data["tab"] = $this->session->data["previouseTab"];
+                unset($this->session->data["previouseTab"]);
+            }
+
+            if (($oldSetting["module_lscache_status"] != $this->request->post["module_lscache_status"]) || ($oldSetting["module_lscache_esi"] != $this->request->post["module_lscache_esi"])) {
+                if ($lscInstance) {
+                    $lscInstance->purgeAllPublic();
+                    $data['success'] .= '<br><i class="fa fa-check-circle"></i> ' . $this->language->get('text_purgeSuccess');
+                }
+            }
+
+            if (!isset($oldSetting["module_lscache_vary_mobile"])) {
+                $oldSetting["module_lscache_vary_mobile"] = '0';
+            }
+
+            if (!isset($oldSetting["module_lscache_vary_safari"])) {
+                $oldSetting["module_lscache_vary_safari"] = '0';
+            }
+
+            if (($oldSetting["module_lscache_vary_mobile"] != $this->request->post["module_lscache_vary_mobile"]) || ($oldSetting["module_lscache_vary_safari"] != $this->request->post["module_lscache_vary_safari"])) {
+                $data['success'] = $this->language->get('text_commentHtaccess');
+                if ($lscInstance) {
+                    $lscInstance->purgeAllPublic();
+                    $data['success'] .= '<br><i class="fa fa-check-circle"></i> ' . $this->language->get('text_purgeSuccess');
+                }
+            }
+        } else if (($action == 'purgeAll') && $lscInstance) {
+            $lscInstance->purgeAllPublic();
+            $this->log($lscInstance->getLogBuffer());
+            $data['success'] = $this->language->get('text_purgeSuccess');
+        } else if (($action == 'purgeAllButton') && $lscInstance) {
+            $lscInstance->purgeAllPublic();
+            $this->log($lscInstance->getLogBuffer());
+            if (isset($_SERVER['HTTP_REFERER'])) {
+                $this->response->redirect($_SERVER['HTTP_REFERER']);
+                return;
+            }
+        } else if (($action == 'deletePage') && isset($this->request->get['key'])) {
+            $key = $this->request->get['key'];
+            $this->model_extension_litespeed_module_lscache->deleteSettingItem('module_lscache', $key);
+            if ($lscInstance) {
+                $lscInstance->purgePublic($key);
+                $this->log($lscInstance->getLogBuffer());
+                $data['success'] = $this->language->get('text_purgeSuccess');
+            }
+            $data["tab"] = "pages";
+        } else if ($action == 'addESIModule') {
+            $data['moduleOptions'] = $this->model_extension_litespeed_module_lscache->getESIModuleOptions();
+            $data['extensionOptions'] = $this->model_extension_litespeed_module_lscache->getESIExtensionOptions();
+            $data["tab"] = "modules";
+            $this->session->data['previouseTab'] = "modules";
+        } else if (($action == 'deleteESI') && isset($this->request->get['key'])) {
+            $key = $this->request->get['key'];
+            $this->model_extension_litespeed_module_lscache->deleteSettingItem('module_lscache', $key);
+            if ($lscInstance) {
+                $lscInstance->purgePublic($key);
+                $this->log($lscInstance->getLogBuffer());
+                $data['success'] = $this->language->get('text_purgeModule');
+            }
+            $data["tab"] = "modules";
+        } else if (($action == 'purgeESI') && isset($this->request->get['key']) && $lscInstance) {
+            $key = $this->request->get['key'];
+            $lscInstance->purgePublic($key);
+            $this->log($lscInstance->getLogBuffer());
+            $data['success'] = $this->language->get('text_purgeModule');
+            $data["tab"] = "modules";
+        } else if (($action == 'purgePage') && isset($this->request->get['key']) && $lscInstance) {
+            $key = $this->request->get['key'];
+            $lscInstance->purgePublic($key);
+            $this->log($lscInstance->getLogBuffer());
+            $data['success'] = $this->language->get('text_purgeSuccess');
+            $data["tab"] = "pages";
+        } else if ($action == 'deleteESI') {
+            $data["tab"] = "modules";
+        } else if ($action == 'deletePage') {
+            $data["tab"] = "pages";
+        } else if ($action == 'addPage') {
+            $this->session->data["previouseTab"] = "pages";
+        } else if ($action == 'addESIRoute') {
+            $this->session->data["previouseTab"] = "modules";
+        }
+
+        $data['pages'] = $this->model_extension_litespeed_module_lscache->getPages();
+        $data['modules'] = $this->model_extension_litespeed_module_lscache->getModules();
+        $items = $this->model_extension_litespeed_module_lscache->getItems();
+        $data = array_merge($data, $items);
+
+        $data['tabtool'] = new Tool('active', 'general');
+        $data['selectEnable'] = new Tool('selected', '1');
+        $data['selectDisable'] = new Tool('selected', '0');
+        $data['selectDefault'] = new Tool('selected', '');
+        $data['checkEnable'] = new Tool('checked', '1');
+        $data['checkDisable'] = new Tool('checked', '0');
+
+        if (!empty($data['error_warning'])) {
+            
+        } else if (isset($this->error['warning'])) {
+            $data['error_warning'] = $this->error['warning'];
+        } else {
+            $data['error_warning'] = '';
+        }
+
+        $data['breadcrumbs'] = array();
+        $data['breadcrumbs'][] = array(
+            'text' => $this->language->get('text_home'),
+            'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'], true)
+        );
+        $data['breadcrumbs'][] = array(
+            'text' => $this->language->get('text_module'),
+            'href' => $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'], true)
+        );
+        $data['breadcrumbs'][] = array(
+            'text' => $this->language->get('heading_title'),
+            'href' => $this->url->link('extension/litespeed/module/lscache', 'user_token=' . $this->session->data['user_token'], true)
+        );
+
+        $data['cancel'] = $parentLink;
+        $data['self'] = $currentLink;
+        $data['purgeAll'] = $currentLink . '&action=purgeAll';
+        $data['purgePage'] = $currentLink . '&action=purgePage';
+        $data['purgeESI'] = $currentLink . '&action=purgeESI';
+        $data['recacheAll'] = $this->isCurl() ? $recacheLink : '#';
+        $data['addPage'] = $currentLink . '&tab=pages&action=addPage';
+        $data['deletePage'] = $currentLink . '&tab=pages&action=deletePage';
+        $data['addESIModule'] = $currentLink . '&tab=modules&action=addESIModule';
+        $data['addESIRoute'] = $currentLink . '&tab=modules&action=addESIRoute';
+        $data['deleteESI'] = $currentLink . '&tab=modules&action=deleteESI';
+
+        $this->document->setTitle($this->language->get('heading_title'));
+        $this->document->addScript('https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js');
+        $this->document->addStyle('https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css');
+
+        $data['header'] = $this->load->controller('common/header');
+        $data['column_left'] = $this->load->controller('common/column_left');
+        $data['footer'] = $this->load->controller('common/footer');
+
+        $this->response->setOutput($this->load->view('extension/litespeed/module/lscache', $data));
+    }
+
+    protected function validate() {
+        if (!$this->user->hasPermission('modify', 'extension/litespeed/module/lscache')) {
+            $this->error['warning'] = $this->language->get('error_permission');
+        }
+        return !$this->error;
+    }
+
+    public function purgeAllButton($route, &$args, &$output) {
+        if ($this->user && $this->user->hasPermission('modify', 'extension/litespeed/module/lscache')) {
+//            $lan = new Language('en-gb');
+//            $lan->load('extension/litespeed/module/lscache');
+            $button = '<li><a href="' . $this->url->link('extension/litespeed/module/lscache', 'user_token=' . $this->session->data['user_token'], true) . '&action=purgeAllButton' . '" data-toggle="tooltip" title="" class="btn" data-original-title="' . $this->language->get('button_purgeAll') . '"><i class="fa fa-trash"></i><span class="hidden-xs hidden-sm hidden-md"> Purge All LiteSpeed Cache</span></a></li>';
+            $search = '<ul class="nav navbar-nav navbar-right">';
+            $output = str_replace($search, $search . $button, $output);
+        }
+    }
+
+    public function install() {
+        $this->load->model('setting/event');
+        $this->load->model('extension/litespeed/module/lscache');
+        $this->model_setting_event->addEvent('lscache_init', '', 'catalog/controller/*/before', 'extension/litespeed/module/lscache|onAfterInitialize');
+
+        $this->model_setting_event->addEvent('lscache_button_purgeall','', 'admin/controller/common/header/after', 'extension/litespeed/module/lscache|purgeAllButton');
+        $this->model_setting_event->addEvent('lscache_product_list','', 'catalog/model/catalog/product|getProducts/after', 'extension/litespeed/module|lscache/getProducts');
+        $this->model_setting_event->addEvent('lscache_product_get','', 'catalog/model/catalog/product|getProduct/after', 'extension/litespeed/module/lscache|getProduct');
+        $this->model_setting_event->addEvent('lscache_product_add','', 'admin/model/catalog/product|addProduct/after', 'extension/litespeed/module/lscache|addProduct');
+        $this->model_setting_event->addEvent('lscache_product_edit','', 'admin/model/catalog/product|editProduct/after', 'extension/litespeed/module/lscache|editProduct');
+        $this->model_setting_event->addEvent('lscache_product_delete','', 'admin/model/catalog/product|deleteProduct/after', 'extension/litespeed/module/lscache|editProduct');
+
+        $this->model_setting_event->addEvent('lscache_category_list','', 'catalog/model/catalog/category|getCategories/after', 'extension/litespeed/module|lscache|getCategories');
+        $this->model_setting_event->addEvent('lscache_category_get', '','catalog/model/catalog/category|getCategory/after', 'extension/litespeed/module/lscache|getCategory');
+        $this->model_setting_event->addEvent('lscache_category_add', '','admin/model/catalog/category|addCategory/after', 'extension/litespeed/module/lscache|addCategory');
+        $this->model_setting_event->addEvent('lscache_category_edit','', 'admin/model/catalog/category|editCategory/after', 'extension/litespeed/module/lscache|editCategory');
+        $this->model_setting_event->addEvent('lscache_category_delete','', 'admin/model/catalog/category|deleteCategory/after', 'extension/litespeed/module/lscache|editCategory');
+
+        $this->model_setting_event->addEvent('lscache_manufacturer_list','', 'catalog/model/catalog/manufacturer|getManufacturers/after', 'extension/litespeed/module/lscache|getManufacturers');
+        $this->model_setting_event->addEvent('lscache_manufacturer_get','', 'catalog/model/catalog/manufacturer|getManufacturer/after', 'extension/litespeed/module/lscache|getManufacturer');
+        $this->model_setting_event->addEvent('lscache_manufacturer_add','', 'admin/model/catalog/manufacturer|addManufacturer/after', 'extension/litespeed/module/lscache|addManufacturer');
+        $this->model_setting_event->addEvent('lscache_manufacturer_edit','', 'admin/model/catalog/manufacturer|editManufacturer/after', 'extension/litespeed/module/lscache|editManufacturer');
+        $this->model_setting_event->addEvent('lscache_manufacturer_delete','', 'admin/model/catalog/manufacturer|deleteManufacturer/after', 'extension/litespeed/module/lscache|editManufacturer');
+
+        $this->model_setting_event->addEvent('lscache_information_list','', 'catalog/model/catalog/information|getInformations/after', 'extension/litespeed/module/lscache|getInformations');
+        $this->model_setting_event->addEvent('lscache_information_get','', 'catalog/model/catalog/information|getInformation/after', 'extension/litespeed/module/lscache|getInformation');
+        $this->model_setting_event->addEvent('lscache_information_add','', 'admin/model/catalog/information|addInformation/after', 'extension/litespeed/module/lscache|addInformation');
+        $this->model_setting_event->addEvent('lscache_information_edit','', 'admin/model/catalog/information|editInformation/after', 'extension/litespeed/module/lscache|editInformation');
+        $this->model_setting_event->addEvent('lscache_information_delete','', 'admin/model/catalog/information|deleteInformation/after', 'extension/litespeed/module/lscache|editInformation');
+
+        $this->model_setting_event->addEvent('lscache_checkout_confirm','', 'catalog/controller/checkout|confirm/after', 'extension/litespeed/module/lscache|confirmOrder');
+        $this->model_setting_event->addEvent('lscache_checkout_success','', 'catalog/controller/checkout|success/after', 'extension/litespeed/module/lscache|confirmOrder');
+
+        $this->model_setting_event->addEvent('lscache_add_ajax','', 'catalog/controller/common/header/after', 'extension/litespeed/module/lscache|addAjax');
+        $this->model_setting_event->addEvent('lscache_cart_add','', 'catalog/controller/checkout/cart|add/after', 'extension/litespeed/module/lscache|editCart');
+        $this->model_setting_event->addEvent('lscache_cart_edit','', 'catalog/controller/checkout/cart|edit/after', 'extension/litespeed/module/lscache|editCart');
+        $this->model_setting_event->addEvent('lscache_cart_remove','', 'catalog/controller/checkout/cart|remove/after', 'extension/litespeed/module/lscache|editCart');
+        $this->model_setting_event->addEvent('lscache_compare_check','', 'catalog/controller/product/compare|add/before', 'extension/litespeed/module/lscache|checkCompare');
+        $this->model_setting_event->addEvent('lscache_compare_edit','', 'catalog/controller/product/compare|add/after', 'extension/litespeed/module/lscache|editCompare');
+        $this->model_setting_event->addEvent('lscache_wishlist_check','', 'catalog/controller/account/wishlist|add/before', 'extension/litespeed/module/lscache|checkWishlist');
+        $this->model_setting_event->addEvent('lscache_wishlist_edit','', 'catalog/controller/account/wishlist|add/after', 'extension/litespeed/module/lscache|editWishlist');
+        $this->model_setting_event->addEvent('lscache_wishlist_display','', 'catalog/controller/account/wishlist|after', 'extension/litespeed/module/lscache|editWishlist');
+
+        $this->model_setting_event->addEvent('lscache_user_forgotten','', 'catalog/controller/account/forgotten|validate/after', 'extension/litespeed/module/lscache|onUserAfterLogin');
+        $this->model_setting_event->addEvent('lscache_user_login','', 'catalog/controller/account/login|validate/after', 'extension/litespeed/module/lscache|onUserAfterLogin');
+        $this->model_setting_event->addEvent('lscache_user_logout','', 'catalog/model/account/customer|deleteLoginAttempts/after', 'extension/litespeed/module/lscache|onUserAfterLogout');
+        $this->model_setting_event->addEvent('lscache_currency_change','', 'catalog/controller/common/currency|currency/before', 'extension/litespeed/module/lscache|editCurrency');
+        $this->model_setting_event->addEvent('lscache_language_change','', 'catalog/controller/common/language|language/before', 'extension/litespeed/module/lscache|editLanguage');
+        $this->model_setting_event->addEvent('lscache_check_error','', 'catalog/view/error/*/before', 'extension/litespeed/module/lscache|checkError');
+
+        $this->model_extension_litespeed_module_lscache->installLSCache();
+        $this->initHtaccess();
+
+        $lscInstance = $this->lscacheInit();
+        if ($lscInstance) {
+            $lscInstance->purgeAllPublic();
+            //$this->log($lscInstance->getLogBuffer(), 0);
+        }
+
+        if (function_exists('opcache_reset')) {
+            opcache_reset();
+        } else if (function_exists('phpopcache_reset')) {
+            phpopcache_reset();
+        }
+
+        //clear template cache file
+//        try {
+//            $template = new Template($this->registry->get('config')->get('template_engine'));
+//            $loader = new \Twig_Loader_Filesystem(DIR_TEMPLATE);
+//            $twig = new \Twig_Environment($loader);
+//            $name = 'extension/litespeed/module/lscache.twig';
+//            $cls = $twig->getTemplateClass($name);
+//            $cache = new Twig_Cache_Filesystem(DIR_CACHE);
+//            $key = $cache->generateKey($name, $cls);
+//            unlink($key);
+//        } catch (Exception $ex) {
+//            
+//        }
+    }
+
+    public function uninstall() {
+        $this->load->model('setting/event');
+        $this->load->model('extension/litespeed/module/lscache');
+        $this->model_setting_event->deleteEventByCode('lscache_init');
+        $this->model_setting_event->deleteEventByCode('lscache_button_purgeall');
+        $this->model_setting_event->deleteEventByCode('lscache_product_list');
+        $this->model_setting_event->deleteEventByCode('lscache_product_add');
+        $this->model_setting_event->deleteEventByCode('lscache_product_get');
+        $this->model_setting_event->deleteEventByCode('lscache_product_edit');
+        $this->model_setting_event->deleteEventByCode('lscache_product_delete');
+        $this->model_setting_event->deleteEventByCode('lscache_category_list');
+        $this->model_setting_event->deleteEventByCode('lscache_category_add');
+        $this->model_setting_event->deleteEventByCode('lscache_category_get');
+        $this->model_setting_event->deleteEventByCode('lscache_category_edit');
+        $this->model_setting_event->deleteEventByCode('lscache_category_delete');
+        $this->model_setting_event->deleteEventByCode('lscache_manufacturer_list');
+        $this->model_setting_event->deleteEventByCode('lscache_manufacturer_add');
+        $this->model_setting_event->deleteEventByCode('lscache_manufacturer_get');
+        $this->model_setting_event->deleteEventByCode('lscache_manufacturer_edit');
+        $this->model_setting_event->deleteEventByCode('lscache_manufacturer_delete');
+        $this->model_setting_event->deleteEventByCode('lscache_information_list');
+        $this->model_setting_event->deleteEventByCode('lscache_information_add');
+        $this->model_setting_event->deleteEventByCode('lscache_information_get');
+        $this->model_setting_event->deleteEventByCode('lscache_information_edit');
+        $this->model_setting_event->deleteEventByCode('lscache_information_delete');
+
+        $this->model_setting_event->deleteEventByCode('lscache_checkout_confirm');
+        $this->model_setting_event->deleteEventByCode('lscache_checkout_success');
+        $this->model_setting_event->deleteEventByCode('lscache_cart_add');
+        $this->model_setting_event->deleteEventByCode('lscache_cart_edit');
+        $this->model_setting_event->deleteEventByCode('lscache_cart_remove');
+        $this->model_setting_event->deleteEventByCode('lscache_add_ajax');
+        $this->model_setting_event->deleteEventByCode('lscache_wishlist_display');
+        $this->model_setting_event->deleteEventByCode('lscache_wishlist_edit');
+        $this->model_setting_event->deleteEventByCode('lscache_wishlist_check');
+        $this->model_setting_event->deleteEventByCode('lscache_compare_check');
+        $this->model_setting_event->deleteEventByCode('lscache_compare_edit');
+        $this->model_setting_event->deleteEventByCode('lscache_user_forgotten');
+        $this->model_setting_event->deleteEventByCode('lscache_user_login');
+        $this->model_setting_event->deleteEventByCode('lscache_user_logout');
+        $this->model_setting_event->deleteEventByCode('lscache_currency_change');
+        $this->model_setting_event->deleteEventByCode('lscache_language_change');
+        $this->model_setting_event->deleteEventByCode('lscache_check_error');
+
+        $this->clearHtaccess();
+        $lscInstance = $this->lscacheInit();
+        if ($lscInstance) {
+            $lscInstance->purgeAllPublic();
+            $this->log($lscInstance->getLogBuffer(), 0);
+        }
+        $this->model_extension_litespeed_module_lscache->uninstallLSCache();
+    }
+
+    public function addProduct($route, &$args, &$output) {
+        $lscInstance = $this->lscacheInit(true);
+        if ($lscInstance) {
+            $purgeTag = 'Product, Category';
+            $data = $args[0];
+            if (isset($data['product_category'])) {
+                foreach ($data['product_category'] as $category_id) {
+                    $purgeTag .= ',' . 'C_' . $category_id;
+                }
+            }
+            $lscInstance->purgePublic($purgeTag);
+            $this->log($lscInstance->getLogBuffer());
+            $lan = new Language();
+            $lan->load('extension/litespeed/module/lscache');
+            $text_success = $this->language->get('text_success') . '<br><i class="fa fa-check-circle"></i> ' . $lan->get('text_purgeSuccess');
+            $this->language->set('text_success', $text_success);
+        }
+    }
+
+    public function editProduct($route, &$args, &$output) {
+        $lscInstance = $this->lscacheInit(true);
+        if ($lscInstance) {
+            $purgeTag = 'Product, Category,P_' . $args[0];
+            $this->load->model('catalog/product');
+            $categories = $this->model_catalog_product->getProductCategories($args[0]);
+            foreach ($categories as $category) {
+                $purgeTag .= ',' . 'C_' . $category;
+            }
+
+            $lscInstance->purgePublic($purgeTag);
+            $this->log($lscInstance->getLogBuffer());
+
+            $lan = new Language();
+            $lan->load('extension/litespeed/module/lscache');
+            $text_success = $this->language->get('text_success') . '<br><i class="fa fa-check-circle"></i> ' . $lan->get('text_purgeSuccess');
+            $this->language->set('text_success', $text_success);
+        }
+    }
+
+    public function addCategory($route, &$args, &$output) {
+        $lscInstance = $this->lscacheInit(true);
+        if ($lscInstance) {
+            $purgeTag = 'Category';
+            $lscInstance->purgePublic($purgeTag);
+            $this->log($lscInstance->getLogBuffer());
+            $lan = new Language();
+            $lan->load('extension/litespeed/module/lscache');
+            $text_success = $this->language->get('text_success') . '<br><i class="fa fa-check-circle"></i> ' . $lan->get('text_purgeSuccess');
+            $this->language->set('text_success', $text_success);
+        }
+    }
+
+    public function editCategory($route, &$args, &$output) {
+        $lscInstance = $this->lscacheInit(true);
+        if ($lscInstance) {
+            $purgeTag = 'Category,C_' . $args[0];
+            $lscInstance->purgePublic($purgeTag);
+            $this->log($lscInstance->getLogBuffer());
+            $lan = new Language();
+            $lan->load('extension/litespeed/module/lscache');
+            $text_success = $this->language->get('text_success') . '<br><i class="fa fa-check-circle"></i> ' . $lan->get('text_purgeSuccess');
+            $this->language->set('text_success', $text_success);
+        }
+    }
+
+    public function addInformation($route, &$args, &$output) {
+        $lscInstance = $this->lscacheInit(true);
+        if ($lscInstance) {
+            $purgeTag = 'Information';
+            $lscInstance->purgePublic($purgeTag);
+            $this->log($lscInstance->getLogBuffer());
+            $lan = new Language();
+            $lan->load('extension/litespeed/module/lscache');
+            $text_success = $this->language->get('text_success') . '<br><i class="fa fa-check-circle"></i> ' . $lan->get('text_purgeSuccess');
+            $this->language->set('text_success', $text_success);
+        }
+    }
+
+    public function editInformation($route, &$args, &$output) {
+        $lscInstance = $this->lscacheInit(true);
+        if ($lscInstance) {
+            $purgeTag = 'Information,I_' . $args[0];
+            $lscInstance->purgePublic($purgeTag);
+            $this->log($lscInstance->getLogBuffer());
+            $lan = new Language();
+            $lan->load('extension/litespeed/module/lscache');
+            $text_success = $this->language->get('text_success') . '<br><i class="fa fa-check-circle"></i> ' . $lan->get('text_purgeSuccess');
+            $this->language->set('text_success', $text_success);
+        }
+    }
+
+    public function addManufacturer($route, &$args, &$output) {
+        $lscInstance = $this->lscacheInit(true);
+        if ($lscInstance) {
+            $purgeTag = 'Manufacturer';
+            $lscInstance->purgePublic($purgeTag);
+            $this->log($lscInstance->getLogBuffer());
+            $lan = new Language();
+            $lan->load('extension/litespeed/module/lscache');
+            $text_success = $this->language->get('text_success') . '<br><i class="fa fa-check-circle"></i> ' . $lan->get('text_purgeSuccess');
+            $this->language->set('text_success', $text_success);
+        }
+    }
+
+    public function editManufacturer($route, &$args, &$output) {
+        $lscInstance = $this->lscacheInit(true);
+        if ($lscInstance) {
+            $purgeTag = 'Manufacturer,M_' . $args[0];
+            $lscInstance->purgePublic($purgeTag);
+            $this->log($lscInstance->getLogBuffer());
+            $lan = new Language();
+            $lan->load('extension/litespeed/module/lscache');
+            $text_success = $this->language->get('text_success') . '<br><i class="fa fa-check-circle"></i> ' . $lan->get('text_purgeSuccess');
+            $this->language->set('text_success', $text_success);
+        }
+    }
+
+    private function lscacheInit($redirect = false) {
+
+        $this->load->model('extension/litespeed/module/lscache');
+        $setting = $this->model_extension_litespeed_module_lscache->getItems();
+
+        // Server type
+        if (!defined('LITESPEED_SERVER_TYPE')) {
+            if (isset($_SERVER['HTTP_X_LSCACHE']) && $_SERVER['HTTP_X_LSCACHE']) {
+                define('LITESPEED_SERVER_TYPE', 'LITESPEED_SERVER_ADC');
+            } elseif (isset($_SERVER['LSWS_EDITION']) && strpos($_SERVER['LSWS_EDITION'], 'Openlitespeed') === 0) {
+                define('LITESPEED_SERVER_TYPE', 'LITESPEED_SERVER_OLS');
+            } elseif (isset($_SERVER['SERVER_SOFTWARE']) && $_SERVER['SERVER_SOFTWARE'] == 'LiteSpeed') {
+                define('LITESPEED_SERVER_TYPE', 'LITESPEED_SERVER_ENT');
+            } else {
+                define('LITESPEED_SERVER_TYPE', 'NONE');
+            }
+        }
+
+        if (isset($setting['module_lscache_status']) && (!$setting['module_lscache_status'])) {
+            return false;
+        }
+
+        // Checks if caching is allowed via server variable
+        if ( LITESPEED_SERVER_TYPE === 'LITESPEED_SERVER_ADC' || LITESPEED_SERVER_TYPE === 'LITESPEED_SERVER_ENT' || LITESPEED_SERVER_TYPE === 'LITESPEED_SERVER_OLS' || defined('LITESPEED_CLI')) {
+            !defined('LITESPEED_ALLOWED') && define('LITESPEED_ALLOWED', true);
+            include_once(DIR_EXTENSION . 'litespeed/system/library/lscache/lscachebase.php');
+            include_once(DIR_EXTENSION . 'litespeed/system/library/lscache/lscachecore.php');
+            $lscInstance = new \LiteSpeedCacheCore();
+            if (!$redirect) {
+                $lscInstance->setHeaderFunction($this->response, 'addHeader');
+            }
+            return $lscInstance;
+        } else {
+            return false;
+        }
+    }
+
+    private function initHtaccess($mobile = false) {
+        $htaccess = realpath(DIR_APPLICATION . '/../') . '/.htaccess';
+
+        $directives = '### LITESPEED_CACHE_START - Do not remove this line' . PHP_EOL;
+        $directives .= '<IfModule LiteSpeed>' . PHP_EOL;
+        $directives .= 'CacheLookup on' . PHP_EOL;
+        $directives .= '## Uncomment the following directives if you has a separate mobile view' . PHP_EOL;
+        $directives .= '##RewriteEngine On' . PHP_EOL;
+        $directives .= '##RewriteCond %{HTTP_USER_AGENT} "iPhone|iPod|BlackBerry|Palm|Googlebot-Mobile|Mobile|mobile|mobi|Windows Mobile|Safari Mobile|Android|Opera Mini" [NC] ' . PHP_EOL;
+        $directives .= '##RewriteRule .* - [E=Cache-Control:vary=isMobile]' . PHP_EOL;
+
+        $directives .= '## Uncomment the following directives if you has a separate Safari browser view' . PHP_EOL;
+        $directives .= '##RewriteCond %{HTTP_USER_AGENT} Safari' . PHP_EOL;
+        $directives .= '##RewriteCond %{HTTP_USER_AGENT} !Chrome' . PHP_EOL;
+        $directives .= '##RewriteCond %{HTTP_USER_AGENT} !CriOS' . PHP_EOL;
+        $directives .= '##RewriteRule .* - [E=Cache-Control:vary=isSafari]' . PHP_EOL;
+
+        $directives .= '##RewriteCond %{HTTP_USER_AGENT} "iPhone|iPod|BlackBerry|Palm|Googlebot-Mobile|Mobile|mobile|mobi|Windows Mobile|Safari Mobile|Android|Opera Mini" [NC]' . PHP_EOL;
+        $directives .= '##RewriteCond %{HTTP_USER_AGENT} Safari' . PHP_EOL;
+        $directives .= '##RewriteCond %{HTTP_USER_AGENT} !Chrome' . PHP_EOL;
+        $directives .= '##RewriteCond %{HTTP_USER_AGENT} !CriOS' . PHP_EOL;
+        $directives .= '##RewriteRule .* - [E=Cache-Control:vary=isMobileSafari]' . PHP_EOL;
+
+        $directives .= '##RewriteCond %{HTTP_USER_AGENT} "iPhone|iPod|BlackBerry|Palm|Googlebot-Mobile|Mobile|mobile|mobi|Windows Mobile|Safari Mobile|Android|Opera Mini" [NC] ' . PHP_EOL;
+        $directives .= '##RewriteRule .* - [E=Cache-Control:vary=isMobile]' . PHP_EOL;
+        $directives .= '##RewriteCond %{HTTP_USER_AGENT} Bot' . PHP_EOL;
+        $directives .= '##RewriteRule .* - [E=Cache-Control:vary=isMobileBot]' . PHP_EOL;
+
+        $directives .= '</IfModule>' . PHP_EOL;
+        $directives .= '### LITESPEED_CACHE_END';
+
+        $pattern = '@### LITESPEED_CACHE_START - Do not remove this line.*?### LITESPEED_CACHE_END@s';
+
+        if (file_exists($htaccess)) {
+            $content = file_get_contents($htaccess);
+            $newContent = preg_replace($pattern, $directives, $content, -1, $count);
+
+            if ($count <= 0) {
+                $newContent = preg_replace('@\<IfModule\ LiteSpeed\>.*?\<\/IfModule\>@s', '', $content);
+                $newContent = preg_replace('@CacheLookup\ on@s', '', $newContent);
+                file_put_contents($htaccess, $directives . PHP_EOL . $newContent);
+            } else if ($count > 0) {
+                file_put_contents($htaccess, $newContent);
+            } else {
+                file_put_contents($htaccess, $directives . PHP_EOL . $newContent);
+            }
+        } else {
+            file_put_contents($htaccess, $directives);
+        }
+    }
+
+    private function clearHtaccess() {
+        $htaccess = realpath(DIR_APPLICATION . '/../') . '/.htaccess';
+
+        if (file_exists($htaccess)) {
+            $contents = file_get_contents($htaccess);
+            $pattern = '@\n?### LITESPEED_CACHE_START - Do not remove this line.*?### LITESPEED_CACHE_END@s';
+
+            $clean_contents = preg_replace($pattern, '', $contents, -1, $count);
+
+            if ($count > 0) {
+                file_put_contents($htaccess, $clean_contents);
+            }
+        }
+    }
+
+    public function log($content = null, $logLevel = self::LOG_INFO) {
+        if (empty($content)) {
+            return;
+        }
+
+        $this->load->model('extension/litespeed/module/lscache');
+        $setting = $this->model_extension_litespeed_module_lscache->getItems();
+
+        if (!isset($setting['module_lscache_log_level'])) {
+            return;
+        }
+
+        $logLevelSetting = $setting['module_lscache_log_level'];
+        if (isset($this->session->data['lscacheOption']) && ($this->session->data['lscacheOption'] == "debug")) {
+            $this->log->write($content);
+            return;
+        } else if ($logLevelSetting == self::LOG_DEBUG) {
+            return;
+        } else if ($logLevel > $logLevelSetting) {
+            return;
+        }
+
+        $logInfo = "LiteSpeed Cache Info:";
+        if ($logLevel == self::LOG_ERROR) {
+            $logInfo = "LiteSpeed Cache Error:";
+        } else if ($logLevel == self::LOG_DEBUG) {
+            $logInfo = "LiteSpeed Cache Debug:";
+        }
+
+        $this->log->write($logInfo . $content);
+    }
+
+    protected function isCurl() {
+        return function_exists('curl_version');
+    }
+
+    private function purgeUrls() {
+        $url = $this->request->post['lscache_purge_url'];
+        if (empty($url) || empty(trim($url))) {
+            return;
+        }
+
+        $urls = explode("\n", str_replace(array("\r\n", "\r"), "\n", $url));
+
+        $success = 0;
+        $acceptCode = array(200, 201);
+
+        $domain = $_SERVER['SERVER_NAME'];
+        $host = $_SERVER['SERVER_ADDR'];
+        $header = ['Host: ' . $_SERVER['HTTP_HOST']];
+        $msg = [];
+
+        foreach ($urls as $key => $path) {
+
+            // Check that URL is in this domain
+            if (strpos($path, $domain) === FALSE) {
+                $msg[] = $path . ' - url not allowed';
+                continue;
+            }
+
+            $ch = curl_init();
+
+            // Replace domain with host, and set Header Host, to support Cloudflare or reverse proxies
+            $host_path = str_replace($domain, $host, $path);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+            curl_setopt($ch, CURLOPT_URL, $host_path);
+            curl_setopt($ch, CURLOPT_VERBOSE, true);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PURGE");
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+            $buffer = curl_exec($ch);
+            $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+            if (in_array($httpcode, $acceptCode)) {
+                $success++;
+            } else {
+                $msg[] = $path . ' - ' . ' purge failed' . $httpcode . curl_error($ch);
+            }
+            curl_close($ch);
+        }
+
+        $msg[] = $success . ' URL purged!';
+        return implode('<br>', $msg);
+    }
+
+}
+
+final class Tool {
+
+    private $result;
+    private $default;
+
+    public function __construct($result = "", $default = "") {
+        $this->result = $result;
+        $this->default = $default;
+    }
+
+    public function check($value, $compare = "1", $attribute = "") {
+
+        if ($value == "") {
+            $value = $this->default;
+        }
+
+        if ($compare != $value) {
+            return "";
+        } else if (empty($attribute)) {
+            return $this->result;
+        } else {
+            return $attribute . '="' . $this->result . '"';
+        }
+    }
+
+}

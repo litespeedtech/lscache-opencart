@@ -1,0 +1,402 @@
+
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="float-end">
+        <!-- Form submit button -->
+        <a href="{{ purgeAll }}" data-toggle="tooltip" title="{{ button_purgeAll }}" class="btn btn-danger"><i class="fas fa-trash"></i></a>
+        <a href="{{ recacheAll }}" data-toggle="tooltip" title="{{ button_recacheAll }}" class="btn btn-success"><i class="fas fa-bolt"></i></a>
+        &nbsp;&nbsp;
+        
+        <button type="submit" form="form-lscache-module" data-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fas fa-save"></i></button>
+        <!-- Back button -->
+        <a href="{{ cancel }}" data-toggle="tooltip" title="{{ button_cancel }}" class="btn btn-light"><i class="fas fa-reply"></i></a>
+      </div>
+      <!-- Heading is mentioned here -->
+      <h1>{{ heading_title }}</h1>
+      <!-- Breadcrumbs are listed here -->
+      <ul class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+        <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="container-fluid">
+      <div class="card">
+      <div class="card-header">
+        <i class="fas fa-pencil-alt"></i> {{ text_edit }}
+      </div>
+      <div class="card-body">
+        {% if error_warning %}
+        <div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+        {% endif %}
+        {% if success %}
+        <div class="alert alert-success alert-dismissible"><i class="fa fa-check-circle"></i> {{ success }}
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+        {% endif %}
+        <!-- form starts here -->
+        <form action="{{ self }}" method="post" enctype="multipart/form-data" id="form-lscache-module" class="form-horizontal">
+          <ul class="nav nav-tabs">
+            <li class="nav-item"><a class="nav-link {{tabtool.check(tab, 'general')}}" href="#tab-general" data-bs-toggle="tab">{{ tab_general }}</a></li>
+            <li class="nav-item"><a class="nav-link {{tabtool.check(tab, 'pages')}}" href="#tab-pages" data-bs-toggle="tab">{{ tab_pages }}</a></li>
+            <li class="nav-item"><a class="nav-link {{tabtool.check(tab, 'urls')}}" href="#tab-urls" data-bs-toggle="tab">{{ tab_urls }}</a></li>
+            <li class="nav-item"><a class="nav-link {{tabtool.check(tab, 'modules')}}" href="#tab-modules" data-bs-toggle="tab">{{ tab_modules }}</a></li>
+          </ul>
+          <div class="tab-content">
+            <div class="tab-pane {{tabtool.check(tab,'general')}}" id="tab-general">
+                <div class="row mb3">
+                  <label class="col-sm-2 col-form-label" for="module_lscache_status">{{ entry_status }}</label>
+                  <div class="col-sm-10">
+                    <select name="module_lscache_status" class="form-select">
+                      <option value="1" {{ selectEnable.check(module_lscache_status, '1') }}>{{ text_enabled }}</option>
+                      <option value="0" {{ selectEnable.check(module_lscache_status, '0') }}>{{ text_disabled }}</option>
+                    </select>
+                  </div>
+                </div>
+                    
+                <div class="row mb3">
+                  <label class="col-sm-2 col-form-label" for="module_lscache_public_ttl"><span data-toggle="tooltip" title="{{ help_public_ttl }}">{{ entry_public_ttl }}</span></label>
+                  <div class="col-sm-10">
+                    <input type="text" name="module_lscache_public_ttl" value="{{ module_lscache_public_ttl }}" placeholder="{{ entry_public_ttl }}" id="input-total" class="form-control" />
+                  </div>
+                </div>
+
+                <div class="row mb3">
+                  <label class="col-sm-2 col-form-label" for="module_lscache_esi">{{ entry_esi }}</label>
+                  <div class="col-sm-10">
+                    <select name="module_lscache_esi" class="form-select">
+                {% if serverType == 'LITESPEED_SERVER_ADC' or serverType == 'LITESPEED_SERVER_ENT'  %}
+                       <option value="1" {{ selectEnable.check(module_lscache_esi, '1') }}>{{ text_enabled }}</option>
+                {% endif %}
+                      <option value="0" {{ selectEnable.check(module_lscache_esi, '0') }}>{{ text_disabled }}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="row mb3">
+                  <label class="col-sm-2 col-form-label" for="module_lscache_vary_login"><span data-toggle="tooltip" title="{{ help_vary_login }}">{{ entry_vary_login }}</span></label>
+                  <div class="col-sm-10">
+                    <select name="module_lscache_vary_login" class="form-select">
+                      <option value="1" {{ selectEnable.check(module_lscache_vary_login, '1') }}>{{ text_enabled }}</option>
+                      <option value="0" {{ selectEnable.check(module_lscache_vary_login, '0') }}>{{ text_disabled }}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="row mb3">
+                  <label class="col-sm-2 col-form-label" for="module_lscache_vary_mobile"><span data-toggle="tooltip" title="{{ help_vary_mobile }}">{{ entry_vary_mobile }}</span></label>
+                  <div class="col-sm-10">
+                    <select name="module_lscache_vary_mobile" class="form-select">
+                      <option value="1" {{ selectDisable.check(module_lscache_vary_mobile, '1') }}>{{ text_enabled }}</option>
+                      <option value="0" {{ selectDisable.check(module_lscache_vary_mobile, '0') }}>{{ text_disabled }}</option>
+                    </select>
+                  </div>
+                </div>
+                    
+                <div class="row mb3">
+                  <label class="col-sm-2 col-form-label" for="module_lscache_vary_safari"><span data-toggle="tooltip" title="{{ help_vary_safari }}">{{ entry_vary_safari }}</span></label>
+                  <div class="col-sm-10">
+                    <select name="module_lscache_vary_safari" class="form-select">
+                      <option value="0" {{ selectDisable.check(module_lscache_vary_safari, '0') }}>{{ text_disabled }}</option>
+                      <option value="1" {{ selectDisable.check(module_lscache_vary_safari, '1') }}>{{ text_enabled }}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="row mb3">
+                  <label class="col-sm-2 col-form-label" for="module_lscache_recache_option">{{ entry_recache_option }}</label>
+                  <div class="col-sm-10">
+                    <select name="module_lscache_recache_option" class="form-select">
+                      <option value="0" {{ selectDisable.check(module_lscache_recache_option, '0') }}>{{ text_recache_default }}</option>
+                      <option value="1" {{ selectDisable.check(module_lscache_recache_option, '1') }}>{{ text_recache_language }}</option>
+                      <option value="2" {{ selectDisable.check(module_lscache_recache_option, '2') }}>{{ text_recache_currency }}</option>
+                      <option value="3" {{ selectDisable.check(module_lscache_recache_option, '3') }}>{{ text_recache_combination }}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="row mb3">
+                  <label class="col-sm-2 col-form-label" for="module_lscache_recache_userAgent">{{ entry_recache_userAgent }}</label>
+                  <div class="col-sm-10">
+                    <textarea  name="module_lscache_recache_userAgent" placeholder="{{ help_recache_userAgent }}" class="form-control" rows="3">{{ module_lscache_recache_userAgent }}</textarea>
+                  </div>
+                </div>
+
+                <div class="row mb3">
+                  <label class="col-sm-2 col-form-label" for="module_lscache_purge_category"><span data-toggle="tooltip" title="{{ help_purge_category }}">{{ entry_purge_category }}</label>
+                  <div class="col-sm-10">
+                    <select name="module_lscache_purge_category" class="form-select">
+                      <option value="1" {{ selectEnable.check(module_lscache_purge_category, '1') }}>{{ text_enabled }}</option>
+                      <option value="0" {{ selectEnable.check(module_lscache_purge_category, '0') }}>{{ text_disabled }}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="row mb3">
+                  <label class="col-sm-2 col-form-label" for="module_lscache_ajax_wishlist">{{ entry_ajax_wishlist }}</label>
+                  <div class="col-sm-10">
+                    <select name="module_lscache_ajax_wishlist" class="form-select">
+                      <option value="1" {{ selectDisable.check(module_lscache_ajax_wishlist, '1') }}>{{ text_enabled }}</option>
+                      <option value="0" {{ selectDisable.check(module_lscache_ajax_wishlist, '0') }}>{{ text_disabled }}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="row mb3">
+                  <label class="col-sm-2 col-form-label" for="module_lscache_ajax_compare">{{ entry_ajax_compare }}</label>
+                  <div class="col-sm-10">
+                    <select name="module_lscache_ajax_compare" class="form-select">
+                      <option value="1" {{ selectDisable.check(module_lscache_ajax_compare, '1') }}>{{ text_enabled }}</option>
+                      <option value="0" {{ selectDisable.check(module_lscache_ajax_compare, '0') }}>{{ text_disabled }}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="row mb3">
+                  <label class="col-sm-2 col-form-label" for="module_lscache_ajax_shopcart">{{ entry_ajax_shopcart }}</label>
+                  <div class="col-sm-10">
+                    <select name="module_lscache_ajax_shopcart" class="form-select">
+                      <option value="1" {{ selectDisable.check(module_lscache_ajax_shopcart, '1') }}>{{ text_enabled }}</option>
+                      <option value="0" {{ selectDisable.check(module_lscache_ajax_shopcart, '0') }}>{{ text_disabled }}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="row mb3">
+                  <label class="col-sm-2 col-form-label" for="module_lscache_cache404">{{ entry_lscache_cache404 }}</label>
+                  <div class="col-sm-10">
+                    <select name="module_lscache_cache404" class="form-select">
+                      <option value="1" {{ selectDisable.check(module_lscache_cache404, '1') }}>{{ text_enabled }}</option>
+                      <option value="0" {{ selectDisable.check(module_lscache_cache404, '0') }}>{{ text_disabled }}</option>
+                    </select>
+                  </div>
+                </div>
+                                        
+                <div class="row mb3">
+                  <label class="col-sm-2 col-form-label" for="module_lscache_log_level">{{ entry_loglevel }}</label>
+                  <div class="col-sm-10">
+                    <select name="module_lscache_log_level" class="form-select">
+                      <option value="0" {{ selectDisable.check(module_lscache_log_level, '0') }}>{{ text_disabled }}</option>
+                      <option value="3" {{ selectDisable.check(module_lscache_log_level, '3') }}>{{ text_error }}</option>
+                      <option value="6" {{ selectDisable.check(module_lscache_log_level, '6') }}>{{ text_info }}</option>
+                      <option value="8" {{ selectDisable.check(module_lscache_log_level, '8') }}>{{ text_debug }}</option>
+                    </select>
+                  </div>
+                </div>
+                    
+            </div>
+                    
+            <div class="tab-pane {{tabtool.check(tab,'pages')}}" id="tab-pages">
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                      <thead>
+                        <tr>
+                          <td class="text-left">{{ page_name }}</td>
+                          <td class="text-left">{{ page_route }}</td>
+                          <td class="text-left"><span data-toggle="tooltip" title="{{ help_page_logout_cachable }}">{{ page_cachable }}</span></td>
+                          <td class="text-left"><span data-toggle="tooltip" title="{{ help_page_login_cachable }}">{{ login_cachable }}</span></td>
+                          <td class="text-right">
+                              <span style="display:inline-block;">{{ text_action }}</span>
+                              <span style="min-width:50%;display:inline-block;">
+                                  <a href="{{ addPage }}" data-toggle="tooltip" title="{{button_add}}" class="btn btn-success"><i class="fa fa-plus-circle"></i></a>
+                              </span>
+                          </td>
+                        </tr>
+                      </thead>
+                    
+                      <tbody>
+                {% if action == 'addPage' %}
+                        <tr>
+                          <td class="text-left"><input type="text" name="page_add-name" value="" placeholder="Page Name"  class="form-control"></td>
+                          <td class="text-left"><input type="text" name="page_add-route" value="" placeholder="Page Route"  class="form-control"></td>
+                          <td class="text-left"><input type="checkbox" name="page_add-cacheLogout" value="1" data-toggle="toggle"></td>
+                          <td class="text-left"><input type="checkbox" name="page_add-cacheLogin" value="1" data-toggle="toggle"></td>
+                          <td class="text-right">
+                            <a href="{{ deletePage }} " data-toggle="tooltip" title="{{ button_deletePage }}" class="btn btn-danger"><i class="fa fa-minus-circle"></i></a>
+                          </td>
+                        </tr>
+                {% endif %}
+
+                {% for page in pages %}
+                        <tr>
+                          <td class="text-left"> {{ page.name }}</td>
+                          <td class="text-left"> {{ page.route }}</td>
+                          <td class="text-left"><input type="checkbox" name="{{page.key}}-cacheLogout" value="1" {{ checkDisable.check(page.cacheLogout) }} data-toggle="toggle" ></td>
+                          <td class="text-left"><input type="checkbox" name="{{page.key}}-cacheLogin" value="1"  {{ checkDisable.check(page.cacheLogin) }}  data-toggle="toggle" ></td>
+                          <td class="text-right">
+                          {% if page.cacheLogout == '1'  or page.cacheLogin == '1' %}
+                            <a href="{{ purgePage }}&key={{page.key}}" data-toggle="tooltip" title="{{ button_purgePage }}" class="btn btn-warning"><i class="fa fa-trash"></i></a>
+                          {% endif %}
+                          
+                          {% if page.default != '1' %}
+                            <a href="{{ deletePage }}&key={{page.key}}" data-toggle="tooltip" title="{{ button_deletePage }}" class="btn btn-danger"><i class="fa fa-minus-circle"></i></a>
+                          {% endif %}
+                            
+                          </td>
+                        </tr>
+                {% endfor %}
+                
+                      </tbody>
+                    </table>
+
+                </div>
+            </div>
+
+            <div class="tab-pane {{tabtool.check(tab, 'urls')}}" id="tab-urls">
+
+                <div class="row mb3">
+                    <label class="col-sm-2 col-form-label" for="module_lscache_include_urls"><span data-toggle="tooltip" title="{{ help_include_urls }}">{{ entry_include_urls }}</span></label>
+                  <div class="col-sm-10">
+                    <textarea  name="module_lscache_include_urls" placeholder="{{ hint_include_urls }}" class="form-control" rows="3">{{ module_lscache_include_urls }}</textarea>
+                  </div>
+                </div>
+
+                <div class="row mb3">
+                    <label class="col-sm-2 col-form-label" for="module_lscache_exclude_login_urls"><span data-toggle="tooltip" title="{{ help_exclude_login_urls }}">{{ entry_exclude_login_urls }}</span></label>
+                  <div class="col-sm-10">
+                    <textarea  name="module_lscache_exclude_login_urls" placeholder="{{ hint_exclude_login_urls }}" class="form-control" rows="3">{{ module_lscache_exclude_login_urls }}</textarea>
+                  </div>
+                </div>
+
+                <div class="row mb3">
+                    <label class="col-sm-2 col-form-label" for="module_lscache_exclude_urls"><span data-toggle="tooltip" title="{{ help_exclude_urls }}">{{ entry_exclude_urls }}</span></label>
+                  <div class="col-sm-10">
+                    <textarea  name="module_lscache_exclude_urls" placeholder="{{ hint_exclude_urls }}" class="form-control" rows="3">{{ module_lscache_exclude_urls }}</textarea>
+                  </div>
+                </div>
+                  
+                <div class="row mb3">
+                  <label class="col-sm-2 col-form-label" for="module_lscache_purge_url">
+                      <button type="submit" name='purgeURL' form="form-lscache-module" data-toggle="tooltip" class="btn btn-warning"><i class="fa fa-trash"> &nbsp; {{ entry_purge_urls }}</i></button>
+                  </label>
+                  <div class="col-sm-10">
+                    <textarea  name="lscache_purge_url" placeholder="{{ hint_purge_urls }}" class="form-control" rows="3">{{ lscache_purge_urls }}</textarea>
+                  </div>
+                </div>
+                
+            </div>
+                
+            <div class="tab-pane {{tabtool.check(tab, 'modules')}}" id="tab-modules">
+                {% if serverType == 'LITESPEED_SERVER_OLS' %}
+                <div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> {{ esi_not_support }}
+                  <button type="button" class="close" data-dismiss="alert">&times;</button>
+                </div>
+                {% endif %}
+                
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                      <thead>
+                        <tr>
+                          <td class="text-left">{{ esi_name }}</td>
+                          <td class="text-left">{{ esi_route }}</td>
+                          <td class="text-left">{{ esi_type }}</td>
+                          <td class="text-left"><span data-toggle="tooltip" title="{{ help_esi_ttl }}">{{ esi_ttl }}</span></td>
+                          <td class="text-left"><span data-toggle="tooltip" title="{{ help_esi_tag }}">{{ esi_tag }}</span></td>
+                          <td class="text-right">
+                              <span style="display:inline-block;">{{ text_action }}</span>
+                              <span style="min-width:45%;display:inline-block;">
+                                  <a href="{{ addESIModule }}" data-toggle="tooltip" title="{{button_addModule}}" class="btn btn-success"><i class="fa fa-plus-circle"></i></a> 
+                                  <a href="{{ addESIRoute }}" data-toggle="tooltip" title="{{button_addRoute}}" class="btn btn-success"><i class="fa fa-plus"></i></a>
+                              </span>
+                          </td>
+                        </tr>
+                      </thead>
+                      <tbody>
+
+                {% if action == 'addESIModule' %}
+                        <tr>
+                          <td class="text-left" colspan="2">
+                            <select name="esi_add-module" class="form-control">
+                              {% for module in moduleOptions %}
+                              <option value="{{ module.module_id }}" >{{ module.code }} : {{ module.name }} &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; extension/module/{{ module.code }} </option>
+                              {% endfor %}
+                              {% for module in extensionOptions %}
+                              <option value="{{ module.code }}" >{{ module.code }}&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;  extension/module/{{ module.code }} </option>
+                              {% endfor %}
+                            </select>
+                          </td>
+                {% endif %}
+
+                {% if action == 'addESIRoute' %}
+                        <tr>
+                          <td class="text-left"><input type="text" name="esi_add-name" value="" placeholder="ESI Module Name"  class="form-control"></td>
+                          <td class="text-left"><input type="text" name="esi_add-route" value="" placeholder="ESI Module Route"  class="form-control"></td>
+                {% endif %}
+                        
+                {% if action == 'addESIModule' or action == 'addESIRoute'  %}
+                          <td class="text-left">
+                            <select name="esi_add-esi_type" class="form-select">
+                              <option value="3" selected>{{ esi_public }}</option>
+                              <option value="2">{{ esi_private }}</option>
+                              <option value="1">{{ esi_none }}</option>
+                              <option value="0">{{ esi_disabled }}</option>
+                            </select>
+                          </td>
+                          <td class="text-left"><input type="text" name="esi_add-esi_ttl" value="1800" placeholder="ESI Module TTS (seconds)"  class="form-control"></td>
+                          <td class="text-left">
+                            <select name="esi_add-esi_tag" class="form-select">
+                              <option value="" selected>{{ text_default }}</option>
+                              <option value="esi_cart">esi_cart</option>
+                              <option value="esi_wishlist">esi_wishlist</option>
+                              <option value="esi_compare">esi_compare</option>
+                            </select>
+                          </td>
+                          <td class="text-right">
+                            <a href="{{ deleteESI }} " data-toggle="tooltip" title="{{ button_deleteModule }}" class="btn btn-danger"><i class="fa fa-minus-circle"></i></a>
+                          </td>
+                        </tr>
+                {% endif %}
+
+                {% for module in modules %}
+                        <tr>
+                          <td class="text-left">{{ module.name }}</td>
+                          <td class="text-left">{{ module.route }}</td>
+                          <td class="text-left">
+                            <select name="{{ module.key }}-esi_type" class="form-select">
+                              <option value="3" {{ selectDisable.check(module.esi_type, '3') }}>{{ esi_public }}</option>
+                              <option value="2" {{ selectDisable.check(module.esi_type, '2') }}>{{ esi_private }}</option>
+                              <option value="1" {{ selectDisable.check(module.esi_type, '1') }}>{{ esi_none }}</option>
+                              <option value="0" {{ selectDisable.check(module.esi_type, '0') }}>{{ esi_disabled }}</option>
+                            </select>
+                          </td>
+                          <td class="text-left"><input type="text" name="{{module.key}}-esi_ttl" value="{{module.esi_ttl}}" placeholder="{{esi_ttl}}"  class="form-control"></td>
+                          <td class="text-left">
+                            <select name="{{ module.key }}-esi_tag" class="form-select">
+                              <option value="" {{ selectDefault.check(module.esi_tag, '') }}>{{ text_default }}</option>
+                              <option value="esi_cart" {{ selectDefault.check(module.esi_tag, 'esi_cart') }}>esi_cart</option>
+                              <option value="esi_wishlist" {{ selectDefault.check(module.esi_tag, 'esi_wishlist') }}>esi_wishlist</option>
+                              <option value="esi_compare" {{ selectDefault.check(module.esi_tag, 'esi_compare') }}>esi_compare</option>
+                            </select>
+                          </td>
+                          
+                          <td class="text-right">
+                          {% if module.esi_type >= '2' %}
+                            <a href="{{ purgeESI }}&key={{module.key}}" data-toggle="tooltip" title="{{ button_purgeESI }}" class="btn btn-warning"><i class="fa fa-trash"></i></a>
+                          {% endif %}
+
+                          {% if module.default != '1' %}
+                            <a href="{{ deleteESI }}&key={{module.key}}" data-toggle="tooltip" title="{{ button_deleteModule }}" class="btn btn-danger"><i class="fa fa-minus-circle"></i></a>
+                          {% endif %}
+                          
+                          </td>
+                        </tr>
+                {% endfor %}
+                
+                      </tbody>
+                    </table>
+                </div>
+            </div>
+                    
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{{ footer }}
