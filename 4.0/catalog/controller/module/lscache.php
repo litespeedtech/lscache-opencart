@@ -975,12 +975,18 @@ class Lscache extends \Opencart\System\Engine\Controller {
                 if (isset($this->lscache->setting['module_lscache_vary_mobile']) && ($this->lscache->setting['module_lscache_vary_mobile'] == '1') && $this->checkMobile($userAgent)) {
                     $device = $this->checkMobile($userAgent);
                     $cookies1[] = '_lscache_vary=device%3A' . $device . ';lsc_private=e70f67d087a65a305e80267ba3bfbc97';
+                    $varyMobile = true;
                 }
 
                 if (isset($this->lscache->setting['module_lscache_vary_safari']) && ($this->lscache->setting['module_lscache_vary_safari'] == '1') && $this->checkSafari($userAgent)) {
                     $cookies1[] = '_lscache_vary=browser%3Asafari;lsc_private=e70f67d087a65a305e80267ba3bfbc97';
+                    $varySafari = true;
                 }
 
+                if($varyMobile && $varySafari){
+                    $cookies1[] = '_lscache_vary=browser%3Asafari;_lscache_vary=device%3A' . $device . 'lsc_private=e70f67d087a65a305e80267ba3bfbc97';
+                }
+                
                 foreach ($cookies1 as $cookie) {
                     $this->log('crawl:' . $url . '  useragent:' . $userAgent . '    cookie:' . $cookie);
                     $start = microtime();
