@@ -984,7 +984,7 @@ class ControllerExtensionModuleLSCache extends Controller
                 }
                 
                 if($varyMobile && $varySafari){
-                    $cookies1[] = '_lscache_vary=browser%3Asafari;_lscache_vary=device%3A' . $device . 'lsc_private=e70f67d087a65a305e80267ba3bfbc97';
+                    $cookies1[] = '_lscache_vary=browser%3Asafari%2Cdevice%3A' . $device . ';lsc_private=e70f67d087a65a305e80267ba3bfbc97';
                 }
                 
                 foreach ($cookies1 as $cookie) {
