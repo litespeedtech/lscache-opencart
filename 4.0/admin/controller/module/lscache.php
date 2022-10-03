@@ -224,8 +224,7 @@ class Lscache extends \Opencart\System\Engine\Controller {
 
     public function purgeAllButton($route, &$args, &$output) {
         if ($this->user && $this->user->hasPermission('modify', 'extension/litespeed/module/lscache')) {
-//            $lan = new Language('en-gb');
-//            $lan->load('extension/litespeed/module/lscache');
+            $this->load->language('extension/litespeed/module/lscache');
             $button = '<li><a href="' . $this->url->link('extension/litespeed/module/lscache', 'user_token=' . $this->session->data['user_token'], true) . '&action=purgeAllButton' . '" data-toggle="tooltip" title="" class="btn" data-original-title="' . $this->language->get('button_purgeAll') . '"><i class="fa fa-trash"></i><span class="hidden-xs hidden-sm hidden-md"> Purge All LiteSpeed Cache</span></a></li>';
             $search = '<ul class="nav navbar-nav navbar-right">';
             $output = str_replace($search, $search . $button, $output);
@@ -238,48 +237,48 @@ class Lscache extends \Opencart\System\Engine\Controller {
         $this->model_setting_event->addEvent('lscache_init', '', 'catalog/controller/*/before', 'extension/litespeed/module/lscache|onAfterInitialize');
 
         $this->model_setting_event->addEvent('lscache_button_purgeall','', 'admin/controller/common/header/after', 'extension/litespeed/module/lscache|purgeAllButton');
-        $this->model_setting_event->addEvent('lscache_product_list','', 'catalog/model/catalog/product|getProducts/after', 'extension/litespeed/module|lscache/getProducts');
-        $this->model_setting_event->addEvent('lscache_product_get','', 'catalog/model/catalog/product|getProduct/after', 'extension/litespeed/module/lscache|getProduct');
-        $this->model_setting_event->addEvent('lscache_product_add','', 'admin/model/catalog/product|addProduct/after', 'extension/litespeed/module/lscache|addProduct');
-        $this->model_setting_event->addEvent('lscache_product_edit','', 'admin/model/catalog/product|editProduct/after', 'extension/litespeed/module/lscache|editProduct');
-        $this->model_setting_event->addEvent('lscache_product_delete','', 'admin/model/catalog/product|deleteProduct/after', 'extension/litespeed/module/lscache|editProduct');
+        $this->model_setting_event->addEvent('lscache_product_list','', 'catalog/model/catalog/product/getProducts/after', 'extension/litespeed/module/lscache|getProducts');
+        $this->model_setting_event->addEvent('lscache_product_get','', 'catalog/model/catalog/product/getProduct/after', 'extension/litespeed/module/lscache|getProduct');
+        $this->model_setting_event->addEvent('lscache_product_add','', 'admin/model/catalog/product/addProduct/after', 'extension/litespeed/module/lscache|addProduct');
+        $this->model_setting_event->addEvent('lscache_product_edit','', 'admin/model/catalog/product/editProduct/after', 'extension/litespeed/module/lscache|editProduct');
+        $this->model_setting_event->addEvent('lscache_product_delete','', 'admin/model/catalog/product/deleteProduct/after', 'extension/litespeed/module/lscache|editProduct');
 
-        $this->model_setting_event->addEvent('lscache_category_list','', 'catalog/model/catalog/category|getCategories/after', 'extension/litespeed/module|lscache|getCategories');
-        $this->model_setting_event->addEvent('lscache_category_get', '','catalog/model/catalog/category|getCategory/after', 'extension/litespeed/module/lscache|getCategory');
-        $this->model_setting_event->addEvent('lscache_category_add', '','admin/model/catalog/category|addCategory/after', 'extension/litespeed/module/lscache|addCategory');
-        $this->model_setting_event->addEvent('lscache_category_edit','', 'admin/model/catalog/category|editCategory/after', 'extension/litespeed/module/lscache|editCategory');
-        $this->model_setting_event->addEvent('lscache_category_delete','', 'admin/model/catalog/category|deleteCategory/after', 'extension/litespeed/module/lscache|editCategory');
+        $this->model_setting_event->addEvent('lscache_category_list','', 'catalog/model/catalog/category/getCategories/after', 'extension/litespeed/module|lscache|getCategories');
+        $this->model_setting_event->addEvent('lscache_category_get', '','catalog/model/catalog/category/getCategory/after', 'extension/litespeed/module/lscache|getCategory');
+        $this->model_setting_event->addEvent('lscache_category_add', '','admin/model/catalog/category/addCategory/after', 'extension/litespeed/module/lscache|addCategory');
+        $this->model_setting_event->addEvent('lscache_category_edit','', 'admin/model/catalog/category/editCategory/after', 'extension/litespeed/module/lscache|editCategory');
+        $this->model_setting_event->addEvent('lscache_category_delete','', 'admin/model/catalog/category/deleteCategory/after', 'extension/litespeed/module/lscache|editCategory');
 
-        $this->model_setting_event->addEvent('lscache_manufacturer_list','', 'catalog/model/catalog/manufacturer|getManufacturers/after', 'extension/litespeed/module/lscache|getManufacturers');
-        $this->model_setting_event->addEvent('lscache_manufacturer_get','', 'catalog/model/catalog/manufacturer|getManufacturer/after', 'extension/litespeed/module/lscache|getManufacturer');
-        $this->model_setting_event->addEvent('lscache_manufacturer_add','', 'admin/model/catalog/manufacturer|addManufacturer/after', 'extension/litespeed/module/lscache|addManufacturer');
-        $this->model_setting_event->addEvent('lscache_manufacturer_edit','', 'admin/model/catalog/manufacturer|editManufacturer/after', 'extension/litespeed/module/lscache|editManufacturer');
-        $this->model_setting_event->addEvent('lscache_manufacturer_delete','', 'admin/model/catalog/manufacturer|deleteManufacturer/after', 'extension/litespeed/module/lscache|editManufacturer');
+        $this->model_setting_event->addEvent('lscache_manufacturer_list','', 'catalog/model/catalog/manufacturer/getManufacturers/after', 'extension/litespeed/module/lscache|getManufacturers');
+        $this->model_setting_event->addEvent('lscache_manufacturer_get','', 'catalog/model/catalog/manufacturer/getManufacturer/after', 'extension/litespeed/module/lscache|getManufacturer');
+        $this->model_setting_event->addEvent('lscache_manufacturer_add','', 'admin/model/catalog/manufacturer/addManufacturer/after', 'extension/litespeed/module/lscache|addManufacturer');
+        $this->model_setting_event->addEvent('lscache_manufacturer_edit','', 'admin/model/catalog/manufacturer/editManufacturer/after', 'extension/litespeed/module/lscache|editManufacturer');
+        $this->model_setting_event->addEvent('lscache_manufacturer_delete','', 'admin/model/catalog/manufacturer/deleteManufacturer/after', 'extension/litespeed/module/lscache|editManufacturer');
 
-        $this->model_setting_event->addEvent('lscache_information_list','', 'catalog/model/catalog/information|getInformations/after', 'extension/litespeed/module/lscache|getInformations');
-        $this->model_setting_event->addEvent('lscache_information_get','', 'catalog/model/catalog/information|getInformation/after', 'extension/litespeed/module/lscache|getInformation');
-        $this->model_setting_event->addEvent('lscache_information_add','', 'admin/model/catalog/information|addInformation/after', 'extension/litespeed/module/lscache|addInformation');
-        $this->model_setting_event->addEvent('lscache_information_edit','', 'admin/model/catalog/information|editInformation/after', 'extension/litespeed/module/lscache|editInformation');
-        $this->model_setting_event->addEvent('lscache_information_delete','', 'admin/model/catalog/information|deleteInformation/after', 'extension/litespeed/module/lscache|editInformation');
+        $this->model_setting_event->addEvent('lscache_information_list','', 'catalog/model/catalog/information/getInformations/after', 'extension/litespeed/module/lscache|getInformations');
+        $this->model_setting_event->addEvent('lscache_information_get','', 'catalog/model/catalog/information/getInformation/after', 'extension/litespeed/module/lscache|getInformation');
+        $this->model_setting_event->addEvent('lscache_information_add','', 'admin/model/catalog/information/addInformation/after', 'extension/litespeed/module/lscache|addInformation');
+        $this->model_setting_event->addEvent('lscache_information_edit','', 'admin/model/catalog/information/editInformation/after', 'extension/litespeed/module/lscache|editInformation');
+        $this->model_setting_event->addEvent('lscache_information_delete','', 'admin/model/catalog/information/deleteInformation/after', 'extension/litespeed/module/lscache|editInformation');
 
-        $this->model_setting_event->addEvent('lscache_checkout_confirm','', 'catalog/controller/checkout|confirm/after', 'extension/litespeed/module/lscache|confirmOrder');
-        $this->model_setting_event->addEvent('lscache_checkout_success','', 'catalog/controller/checkout|success/after', 'extension/litespeed/module/lscache|confirmOrder');
+        $this->model_setting_event->addEvent('lscache_checkout_confirm','', 'catalog/controller/checkout/confirm/after', 'extension/litespeed/module/lscache|confirmOrder');
+        $this->model_setting_event->addEvent('lscache_checkout_success','', 'catalog/controller/checkout/success/after', 'extension/litespeed/module/lscache|confirmOrder');
 
         $this->model_setting_event->addEvent('lscache_add_ajax','', 'catalog/controller/common/header/after', 'extension/litespeed/module/lscache|addAjax');
-        $this->model_setting_event->addEvent('lscache_cart_add','', 'catalog/controller/checkout/cart|add/after', 'extension/litespeed/module/lscache|editCart');
-        $this->model_setting_event->addEvent('lscache_cart_edit','', 'catalog/controller/checkout/cart|edit/after', 'extension/litespeed/module/lscache|editCart');
-        $this->model_setting_event->addEvent('lscache_cart_remove','', 'catalog/controller/checkout/cart|remove/after', 'extension/litespeed/module/lscache|editCart');
-        $this->model_setting_event->addEvent('lscache_compare_check','', 'catalog/controller/product/compare|add/before', 'extension/litespeed/module/lscache|checkCompare');
-        $this->model_setting_event->addEvent('lscache_compare_edit','', 'catalog/controller/product/compare|add/after', 'extension/litespeed/module/lscache|editCompare');
-        $this->model_setting_event->addEvent('lscache_wishlist_check','', 'catalog/controller/account/wishlist|add/before', 'extension/litespeed/module/lscache|checkWishlist');
-        $this->model_setting_event->addEvent('lscache_wishlist_edit','', 'catalog/controller/account/wishlist|add/after', 'extension/litespeed/module/lscache|editWishlist');
-        $this->model_setting_event->addEvent('lscache_wishlist_display','', 'catalog/controller/account/wishlist|after', 'extension/litespeed/module/lscache|editWishlist');
+        $this->model_setting_event->addEvent('lscache_cart_add','', 'catalog/controller/checkout/cart/add/after', 'extension/litespeed/module/lscache|editCart');
+        $this->model_setting_event->addEvent('lscache_cart_edit','', 'catalog/controller/checkout/cart/edit/after', 'extension/litespeed/module/lscache|editCart');
+        $this->model_setting_event->addEvent('lscache_cart_remove','', 'catalog/controller/checkout/cart/remove/after', 'extension/litespeed/module/lscache|editCart');
+        $this->model_setting_event->addEvent('lscache_compare_check','', 'catalog/controller/product/compare/add/before', 'extension/litespeed/module/lscache|checkCompare');
+        $this->model_setting_event->addEvent('lscache_compare_edit','', 'catalog/controller/product/compare/add/after', 'extension/litespeed/module/lscache|editCompare');
+        $this->model_setting_event->addEvent('lscache_wishlist_check','', 'catalog/controller/account/wishlist/add/before', 'extension/litespeed/module/lscache|checkWishlist');
+        $this->model_setting_event->addEvent('lscache_wishlist_edit','', 'catalog/controller/account/wishlist/add/after', 'extension/litespeed/module/lscache|editWishlist');
+        $this->model_setting_event->addEvent('lscache_wishlist_display','', 'catalog/controller/account/wishlist/after', 'extension/litespeed/module/lscache|editWishlist');
 
-        $this->model_setting_event->addEvent('lscache_user_forgotten','', 'catalog/controller/account/forgotten|validate/after', 'extension/litespeed/module/lscache|onUserAfterLogin');
-        $this->model_setting_event->addEvent('lscache_user_login','', 'catalog/controller/account/login|validate/after', 'extension/litespeed/module/lscache|onUserAfterLogin');
-        $this->model_setting_event->addEvent('lscache_user_logout','', 'catalog/model/account/customer|deleteLoginAttempts/after', 'extension/litespeed/module/lscache|onUserAfterLogout');
-        $this->model_setting_event->addEvent('lscache_currency_change','', 'catalog/controller/common/currency|currency/before', 'extension/litespeed/module/lscache|editCurrency');
-        $this->model_setting_event->addEvent('lscache_language_change','', 'catalog/controller/common/language|language/before', 'extension/litespeed/module/lscache|editLanguage');
+        $this->model_setting_event->addEvent('lscache_user_forgotten','', 'catalog/controller/account/forgotten/validate/after', 'extension/litespeed/module/lscache|onUserAfterLogin');
+        $this->model_setting_event->addEvent('lscache_user_login','', 'catalog/controller/account/login/validate/after', 'extension/litespeed/module/lscache|onUserAfterLogin');
+        $this->model_setting_event->addEvent('lscache_user_logout','', 'catalog/model/account/customer/deleteLoginAttempts/after', 'extension/litespeed/module/lscache|onUserAfterLogout');
+        $this->model_setting_event->addEvent('lscache_currency_change','', 'catalog/controller/common/currency/currency/before', 'extension/litespeed/module/lscache|editCurrency');
+        $this->model_setting_event->addEvent('lscache_language_change','', 'catalog/controller/common/language/language/before', 'extension/litespeed/module/lscache|editLanguage');
         $this->model_setting_event->addEvent('lscache_check_error','', 'catalog/view/error/*/before', 'extension/litespeed/module/lscache|checkError');
 
         $this->model_extension_litespeed_module_lscache->installLSCache();
@@ -377,9 +376,8 @@ class Lscache extends \Opencart\System\Engine\Controller {
             }
             $lscInstance->purgePublic($purgeTag);
             $this->log($lscInstance->getLogBuffer());
-            $lan = new Language();
-            $lan->load('extension/litespeed/module/lscache');
-            $text_success = $this->language->get('text_success') . '<br><i class="fa fa-check-circle"></i> ' . $lan->get('text_purgeSuccess');
+            $this->load->language('extension/litespeed/module/lscache');
+            $text_success = $this->language->get('text_success') . '<br><i class="fa fa-check-circle"></i> ' . $this->language->get('text_purgeSuccess');
             $this->language->set('text_success', $text_success);
         }
     }
@@ -389,7 +387,7 @@ class Lscache extends \Opencart\System\Engine\Controller {
         if ($lscInstance) {
             $purgeTag = 'Product, Category,P_' . $args[0];
             $this->load->model('catalog/product');
-            $categories = $this->model_catalog_product->getProductCategories($args[0]);
+            $categories = $this->model_catalog_product->getCategories($args[0]);
             foreach ($categories as $category) {
                 $purgeTag .= ',' . 'C_' . $category;
             }
@@ -397,9 +395,9 @@ class Lscache extends \Opencart\System\Engine\Controller {
             $lscInstance->purgePublic($purgeTag);
             $this->log($lscInstance->getLogBuffer());
 
-            $lan = new Language();
-            $lan->load('extension/litespeed/module/lscache');
-            $text_success = $this->language->get('text_success') . '<br><i class="fa fa-check-circle"></i> ' . $lan->get('text_purgeSuccess');
+            $this->load->language('extension/litespeed/module/lscache');
+
+            $text_success = $this->language->get('text_success') . '<br><i class="fa fa-check-circle"></i> ' . $this->language->get('text_purgeSuccess');
             $this->language->set('text_success', $text_success);
         }
     }
@@ -410,9 +408,8 @@ class Lscache extends \Opencart\System\Engine\Controller {
             $purgeTag = 'Category';
             $lscInstance->purgePublic($purgeTag);
             $this->log($lscInstance->getLogBuffer());
-            $lan = new Language();
-            $lan->load('extension/litespeed/module/lscache');
-            $text_success = $this->language->get('text_success') . '<br><i class="fa fa-check-circle"></i> ' . $lan->get('text_purgeSuccess');
+            $this->load->language('extension/litespeed/module/lscache');
+            $text_success = $this->language->get('text_success') . '<br><i class="fa fa-check-circle"></i> ' . $this->language->get('text_purgeSuccess');
             $this->language->set('text_success', $text_success);
         }
     }
@@ -423,9 +420,8 @@ class Lscache extends \Opencart\System\Engine\Controller {
             $purgeTag = 'Category,C_' . $args[0];
             $lscInstance->purgePublic($purgeTag);
             $this->log($lscInstance->getLogBuffer());
-            $lan = new Language();
-            $lan->load('extension/litespeed/module/lscache');
-            $text_success = $this->language->get('text_success') . '<br><i class="fa fa-check-circle"></i> ' . $lan->get('text_purgeSuccess');
+            $this->load->language('extension/litespeed/module/lscache');
+            $text_success = $this->language->get('text_success') . '<br><i class="fa fa-check-circle"></i> ' . $this->language->get('text_purgeSuccess');
             $this->language->set('text_success', $text_success);
         }
     }
@@ -436,9 +432,8 @@ class Lscache extends \Opencart\System\Engine\Controller {
             $purgeTag = 'Information';
             $lscInstance->purgePublic($purgeTag);
             $this->log($lscInstance->getLogBuffer());
-            $lan = new Language();
-            $lan->load('extension/litespeed/module/lscache');
-            $text_success = $this->language->get('text_success') . '<br><i class="fa fa-check-circle"></i> ' . $lan->get('text_purgeSuccess');
+            $this->load->language('extension/litespeed/module/lscache');
+            $text_success = $this->language->get('text_success') . '<br><i class="fa fa-check-circle"></i> ' . $this->language->get('text_purgeSuccess');
             $this->language->set('text_success', $text_success);
         }
     }
@@ -449,9 +444,8 @@ class Lscache extends \Opencart\System\Engine\Controller {
             $purgeTag = 'Information,I_' . $args[0];
             $lscInstance->purgePublic($purgeTag);
             $this->log($lscInstance->getLogBuffer());
-            $lan = new Language();
-            $lan->load('extension/litespeed/module/lscache');
-            $text_success = $this->language->get('text_success') . '<br><i class="fa fa-check-circle"></i> ' . $lan->get('text_purgeSuccess');
+            $this->load->language('extension/litespeed/module/lscache');
+            $text_success = $this->language->get('text_success') . '<br><i class="fa fa-check-circle"></i> ' . $this->language->get('text_purgeSuccess');
             $this->language->set('text_success', $text_success);
         }
     }
@@ -462,9 +456,8 @@ class Lscache extends \Opencart\System\Engine\Controller {
             $purgeTag = 'Manufacturer';
             $lscInstance->purgePublic($purgeTag);
             $this->log($lscInstance->getLogBuffer());
-            $lan = new Language();
-            $lan->load('extension/litespeed/module/lscache');
-            $text_success = $this->language->get('text_success') . '<br><i class="fa fa-check-circle"></i> ' . $lan->get('text_purgeSuccess');
+            $this->load->language('extension/litespeed/module/lscache');
+            $text_success = $this->language->get('text_success') . '<br><i class="fa fa-check-circle"></i> ' . $this->language->get('text_purgeSuccess');
             $this->language->set('text_success', $text_success);
         }
     }
@@ -475,9 +468,8 @@ class Lscache extends \Opencart\System\Engine\Controller {
             $purgeTag = 'Manufacturer,M_' . $args[0];
             $lscInstance->purgePublic($purgeTag);
             $this->log($lscInstance->getLogBuffer());
-            $lan = new Language();
-            $lan->load('extension/litespeed/module/lscache');
-            $text_success = $this->language->get('text_success') . '<br><i class="fa fa-check-circle"></i> ' . $lan->get('text_purgeSuccess');
+            $this->load->language('extension/litespeed/module/lscache');
+            $text_success = $this->language->get('text_success') . '<br><i class="fa fa-check-circle"></i> ' . $this->language->get('text_purgeSuccess');
             $this->language->set('text_success', $text_success);
         }
     }
