@@ -914,10 +914,15 @@ class ControllerExtensionModuleLSCache extends Controller
         $recacheUserAgents = isset($this->lscache->setting['module_lscache_recache_userAgent']) ? explode(PHP_EOL, $this->lscache->setting['module_lscache_recache_userAgent']) : array("lscache_runner");
         if (empty($recacheUserAgents) || empty($recacheUserAgents[0])) {
             $recacheUserAgents = array('lscache_runner');
+        } else {
+            foreach($recacheUserAgents as $ua){
+                if(strpos($ua, 'lscache_runner')===false){
+                    $ua = $ua . ' lscache_runner';
+                }
+            }
         }
-
         if ($this->lscache->esiEnabled) {
-            $cookies = array('', '_lscache_vary=session%3AloggedOut;lsc_private=e70f67d087a65a305e80267ba3bfbc97');
+             $cookies = array('', '_lscache_vary=session%3AloggedOut');
         } else {
             $cookies = array('');
         }
@@ -933,7 +938,7 @@ class ControllerExtensionModuleLSCache extends Controller
                 );
             }
             if (($recacheOption == '1') && ($result['code'] != $this->config->get('config_language'))) {
-                $cookies[] = '_lscache_vary=language%3A' . $result['code'] . ';language=' . $result['code'] . ';lsc_private=e70f67d087a65a305e80267ba3bfbc97';
+                $cookies[] = '_lscache_vary=language%3A' . $result['code'] . ';language=' . $result['code'] ;
             }
         }
 
@@ -949,7 +954,7 @@ class ControllerExtensionModuleLSCache extends Controller
             }
 
             if (($recacheOption == '2') && ($result['code'] != $this->config->get('config_currency'))) {
-                $cookies[] = '_lscache_vary=currency%3A' . $result['code'] . ';currency=' . $result['code'] . ';lsc_private=e70f67d087a65a305e80267ba3bfbc97';
+                $cookies[] = '_lscache_vary=currency%3A' . $result['code'] . ';currency=' . $result['code'];
             }
         }
 
@@ -957,7 +962,7 @@ class ControllerExtensionModuleLSCache extends Controller
             foreach ($languages as $language) {
                 foreach ($currencies as $currency) {
                     if (($language['code'] != $this->config->get('config_language')) && ($currency['code'] != $this->config->get('config_currency'))) {
-                        $cookies[] = '_lscache_vary=language%3A' . $language['code'] . ',currency%3A' . $currency['code'] . ';language=' . $language['code'] . ';currency=' . $currency['code'] . ';lsc_private=e70f67d087a65a305e80267ba3bfbc97';
+                        $cookies[] = '_lscache_vary=language%3A' . $language['code'] . ',currency%3A' . $currency['code'] . ';language=' . $language['code'] . ';currency=' . $currency['code'] ;
                     }
                 }
             }
@@ -973,18 +978,18 @@ class ControllerExtensionModuleLSCache extends Controller
                 $varyMobile = false;
                 if (isset($this->lscache->setting['module_lscache_vary_mobile']) && ($this->lscache->setting['module_lscache_vary_mobile'] == '1') && $this->checkMobile($userAgent)) {
                     $device = $this->checkMobile($userAgent);
-                    $cookies1[] = '_lscache_vary=device%3A' . $device . ';lsc_private=e70f67d087a65a305e80267ba3bfbc97' ;
+                    $cookies1[] = '_lscache_vary=device%3A' . $device  ;
                     $varyMobile = true;
                 }
 
                 $varySafari = false;
                 if(isset($this->lscache->setting['module_lscache_vary_safari']) && ($this->lscache->setting['module_lscache_vary_safari'] == '1') && $this->checkSafari($userAgent)) {
-                    $cookies1[] = '_lscache_vary=browser%3Asafari;lsc_private=e70f67d087a65a305e80267ba3bfbc97' ;
+                    $cookies1[] = '_lscache_vary=browser%3Asafari' ;
                     $varySafari = true;
                 }
                 
                 if($varyMobile && $varySafari){
-                    $cookies1[] = '_lscache_vary=browser%3Asafari%2Cdevice%3A' . $device . ';lsc_private=e70f67d087a65a305e80267ba3bfbc97';
+                    $cookies1[] = '_lscache_vary=browser%3Asafari%2Cdevice%3A' . $device ;
                 }
                 
                 foreach ($cookies1 as $cookie) {

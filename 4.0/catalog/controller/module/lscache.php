@@ -919,7 +919,7 @@ class Lscache extends \Opencart\System\Engine\Controller {
         } else {
             foreach($recacheUserAgents as $ua){
                 if(strpos($ua, 'lscache_runner')===false){
-                    $ua = $ua . ' lscache-runner';
+                    $ua = $ua . ' lscache_runner';
                 }
             }
         }
