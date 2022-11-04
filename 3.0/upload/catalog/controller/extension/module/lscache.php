@@ -985,8 +985,17 @@ class ControllerExtensionModuleLSCache extends Controller
                 foreach ($urls as $url) {
                     
                     $url = str_replace('&amp;', '&', $url);
-                    $this->log('crawl:' . $url . '  useragent:' . $userAgent . '    cookie:' . $cookie);
-                    $ch = $this->getCurlHandler($url, $userAgent, $cookie1);
+                    $userAgent1 = $userAgent;
+                    $refreshExpiration = isset($this->lscache->setting['module_lscache_refresh_expiration']) ? $this->lscache->setting['module_lscache_refresh_expiration'] : 0;
+                    if($refreshExpiration){
+                        if (LITESPEED_SERVER_TYPE === 'LITESPEED_SERVER_OLS') {
+                            $cookie1 = $this->getUniqueVaryCookie() . $cookie;
+                        } else {
+                            $userAgent1 = str_replace('_lscache_runner', '_lscache_walker', $userAgent);
+                        }
+                    }
+                    $this->log('crawl:' . $url . '  useragent:' . $userAgent1 . '    cookie:' . $cookie);
+                    $ch = $this->getCurlHandler($url, $userAgent1, $cookie1);
 
                     $start = microtime();
 

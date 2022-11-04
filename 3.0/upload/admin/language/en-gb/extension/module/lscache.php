@@ -46,6 +46,7 @@ $_['entry_ajax_compare']     = 'Ajax Load Compare';
 $_['entry_ajax_shopcart']     = 'Ajax Load Shopcart';
 $_['entry_recache_option']     = 'Rebuild Cache Options';
 $_['entry_recache_userAgent']     = 'Rebuild Cache for specific devices/browsers';
+$_['entry_refresh_expiration']     = 'Refresh Cache Expiration when Crawling';
 $_['entry_include_urls']     = 'Include URLs';
 $_['entry_exclude_login_urls']     = 'Exclude URLs for logged-in users';
 $_['entry_exclude_urls']     = 'Exclude URLs';
@@ -53,6 +54,7 @@ $_['entry_purge_urls']     = 'Purge URLs';
 $_['entry_purge_category']     = 'Purge Category Cache on Product Save';
 $_['entry_lscache_cache404']     = 'Cache 404 Pages';
 
+$_['help_refresh_expiration']     = 'Refresh cache expiration time when crawling a ached page';
 $_['help_public_ttl']     = 'LiteSpeed page cache lifetime in seconds';
 $_['help_login_cachable']     = 'If disabled, all web page cache will not be available for logged-in users';
 $_['help_page_login_cachable']     = 'Page Cache for logged-in users';
