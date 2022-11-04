@@ -557,11 +557,11 @@ class ControllerExtensionModuleLSCache extends Controller {
         $directives .= '##RewriteCond %{HTTP_USER_AGENT} !CriOS' . PHP_EOL;
         $directives .= '##RewriteRule .* - [E=Cache-Control:vary=isMobileSafari]' . PHP_EOL;
 
+        //avoid mobile bot never hit a cache copy because it do not store cookies
+        $directives .= '## Uncomment the following directives only if enabled GUI Option of Separate Cache Copy for Mobile Device, "yoursite.domain" need to be changed' . PHP_EOL;
         $directives .= '##RewriteCond %{HTTP_USER_AGENT} "iPhone|iPod|BlackBerry|Palm|Googlebot-Mobile|Mobile|mobile|mobi|Windows Mobile|Safari Mobile|Android|Opera Mini" [NC] ' . PHP_EOL;
-        $directives .= '##RewriteRule .* - [E=Cache-Control:vary=isMobile]' . PHP_EOL;
         $directives .= '##RewriteCond %{HTTP_USER_AGENT} Bot' . PHP_EOL;
-        $directives .= '##RewriteRule .* - [E=Cache-Control:vary=isMobileBot]' . PHP_EOL;
-        
+        $directives .= '##RewriteRule .* - [CO=_lscache_vary:device&3Amobile:.yoursite.domain:0:/]' . PHP_EOL;
         $directives .= '</IfModule>' . PHP_EOL;
         $directives .= '### LITESPEED_CACHE_END';
 
