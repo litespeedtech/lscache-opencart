@@ -966,7 +966,9 @@ class ControllerExtensionModuleLSCache extends Controller
 
                 $cookie1 = $cookie;
                 if (empty($cookie) || (substr($cookie,0,13)!='_lscache_vary')){
-                    $cookie1 = $this->getUniqueVaryCookie() . $cookie;
+                    if(!empty($cookie)){
+                        $cookie1 = $this->getUniqueVaryCookie() . $cookie;
+                    }
                     $userAgent1 = str_replace('lsc_runner', '', $userAgent);
                     $ch = $this->getCurlHandler($urls[0], $userAgent1, $cookie1);
                     $buffer = curl_exec($ch);
