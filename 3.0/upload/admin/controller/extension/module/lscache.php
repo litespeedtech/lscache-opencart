@@ -540,8 +540,9 @@ class ControllerExtensionModuleLSCache extends Controller {
         $directives = '### LITESPEED_CACHE_START - Do not remove this line' . PHP_EOL;
         $directives .= '<IfModule LiteSpeed>' . PHP_EOL;
         $directives .= 'CacheLookup on' . PHP_EOL;
-        $directives .= '## Uncomment the following directives if you has a separate mobile view' . PHP_EOL;
         $directives .= '##RewriteEngine On' . PHP_EOL;
+
+        $directives .= '## Uncomment the following directives if you has a separate mobile view' . PHP_EOL;
         $directives .= '##RewriteCond %{HTTP_USER_AGENT} "iPhone|iPod|BlackBerry|Palm|Googlebot-Mobile|Mobile|mobile|mobi|Windows Mobile|Safari Mobile|Android|Opera Mini" [NC] ' . PHP_EOL;
         $directives .= '##RewriteRule .* - [E=Cache-Control:vary=isMobile]' . PHP_EOL;
 
@@ -550,12 +551,6 @@ class ControllerExtensionModuleLSCache extends Controller {
         $directives .= '##RewriteCond %{HTTP_USER_AGENT} !Chrome' . PHP_EOL;
         $directives .= '##RewriteCond %{HTTP_USER_AGENT} !CriOS' . PHP_EOL;
         $directives .= '##RewriteRule .* - [E=Cache-Control:vary=isSafari]' . PHP_EOL;
-
-        $directives .= '##RewriteCond %{HTTP_USER_AGENT} "iPhone|iPod|BlackBerry|Palm|Googlebot-Mobile|Mobile|mobile|mobi|Windows Mobile|Safari Mobile|Android|Opera Mini" [NC]' . PHP_EOL;
-        $directives .= '##RewriteCond %{HTTP_USER_AGENT} Safari' . PHP_EOL;
-        $directives .= '##RewriteCond %{HTTP_USER_AGENT} !Chrome' . PHP_EOL;
-        $directives .= '##RewriteCond %{HTTP_USER_AGENT} !CriOS' . PHP_EOL;
-        $directives .= '##RewriteRule .* - [E=Cache-Control:vary=isMobileSafari]' . PHP_EOL;
 
         //avoid mobile bot never hit a cache copy because it do not store cookies
         $directives .= '## Uncomment the following directives only if enabled GUI Option of Separate Cache Copy for Mobile Device, "yoursite.domain" need to be changed' . PHP_EOL;
