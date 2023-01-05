@@ -1020,7 +1020,7 @@ class ControllerExtensionModuleLSCache extends Controller
 
                     $end = microtime();
                     $diff = $this->microtimeMinus($start, $end);
-                    //usleep(round($diff));
+                    usleep(round($diff));
 
                     echo $current . '/' . $count . ' ' . $url . ' httpcode: ' . $httpcode  . ($cli ? '' : '<br/>') .  PHP_EOL;
                     
