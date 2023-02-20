@@ -169,10 +169,8 @@ class ControllerExtensionModuleLSCache extends Controller
         $esiModules = $this->model_extension_module_lscache->getESIModules();
         $esiKey = 'esi_' . str_replace('/', '_', $route);
         if (count($args) > 0) {
-            $esiKey .= '_' . $args['module_id'];
-        }
-        if (!isset($esiModules[$esiKey])) {
-            return;
+            if(isset($_GET['module_id'])){
+            $esiKey .= '_' . $args['module_id'];}
         }
 
         $module = $esiModules[$esiKey];
