@@ -54,7 +54,7 @@ $_['entry_purge_urls']     = 'Purge URLs';
 $_['entry_purge_category']     = 'Purge Category Cache on Product Save';
 $_['entry_lscache_cache404']     = 'Cache 404 Pages';
 
-$_['help_refresh_expiration']     = 'Refresh cache expiration time when crawling a ached page';
+$_['help_refresh_expiration']     = 'Refresh cache expiration time when crawling a cached page';
 $_['help_public_ttl']     = 'LiteSpeed page cache lifetime in seconds';
 $_['help_login_cachable']     = 'If disabled, all web page cache will not be available for logged-in users';
 $_['help_page_login_cachable']     = 'Page Cache for logged-in users';

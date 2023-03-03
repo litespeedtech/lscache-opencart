@@ -969,7 +969,7 @@ class ControllerExtensionModuleLSCache extends Controller
                     if(!empty($cookie)){
                         $cookie1 = $this->getUniqueVaryCookie() . $cookie;
                     }
-                    $userAgent1 = str_replace('lsc_runner', '', $userAgent);
+                    $userAgent1 = str_replace('lscache_runner', '', $userAgent);
                     $ch = $this->getCurlHandler($urls[0], $userAgent1, $cookie1);
                     $buffer = curl_exec($ch);
                     $responseVaryCookie = $this->getResponseVaryCookie($buffer);
@@ -991,7 +991,7 @@ class ControllerExtensionModuleLSCache extends Controller
                         if (LITESPEED_SERVER_TYPE === 'LITESPEED_SERVER_OLS') {
                             $cookie1 = $this->getUniqueVaryCookie() . $cookie;
                         } else {
-                            $userAgent1 = str_replace('_lscache_runner', '_lscache_walker', $userAgent);
+                            $userAgent1 = str_replace('lscache_runner', 'lscache_walker', $userAgent);
                         }
                     }
                     $this->log('crawl:' . $url . '  useragent:' . $userAgent1 . '    cookie:' . $cookie);
