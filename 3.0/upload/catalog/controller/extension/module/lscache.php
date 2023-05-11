@@ -909,52 +909,59 @@ class ControllerExtensionModuleLSCache extends Controller
             }
         }
 
-        if ($this->lscache->esiEnabled) {
-            $cookies = array('', 'lsc_private=e70f67d087a65a305e80267ba3bfbc97');
+        $cookies = array('');
+
+        If ( $this->lscache->esiEnabled ) {
+            $cookie_esi = 'lsc_private=e70f67d087a65a305e80267ba3bfbc97';
         } else {
-            $cookies = array('');
+            $cookie_esi = '';
         }
+
+        $cookies_lang = array('');
+        $cookies_cur = array('');
 
         $this->load->model('localisation/language');
-        $languages = $this->model_localisation_language->getLanguages();
-        if ($recacheOption == '1') {
+        If ( ($recacheOption=='1') || ($recacheOption=='3') ) {
+        {
+            $languages = $this->model_localisation_language->getLanguages();
             foreach ($languages as $result) {
                 if ($result['status']) {
-                    $languages[] = array(
-                        'code' => $result['code'],
-                        'name' => $result['name'],
-                    );
+                    $cookies_lang[] = $result['code'];
                 }
-                if (($result['code'] != $this->config->get('config_language'))) {
-                    $cookies[] = 'language=' . $result['code'] ;
-                }
+            }
+        } else {
+            If ( $this->config->get('config_language' )) { 
+                $cookies_lang = $this->config->get('config_language' );
             }
         }
-        
-        $this->load->model('localisation/currency');
-        $currencies = $this->model_localisation_currency->getCurrencies();
-        if ($recacheOption == '2') {
+
+        If ( ($recacheOption=='2')  || ($recacheOption=='3') ) {
+            $this->load->model('localisation/currency');
+            $currencies = $this->model_localisation_currency->getCurrencies();
             foreach ($currencies as $result) {
                 if ($result['status']) {
-                    $currencies[] = array(
-                        'code' => $result['code'],
-                        'title' => $result['title'],
-                    );
-                }
-
-                if (($result['code'] != $this->config->get('config_currency'))) {
-                    $cookies[] = 'currency=' . $result['code'];
+                    $cookies_cur[] = $result['code'];
                 }
             }
-    }
+        } else {
+            If($this->config->get('config_currency' )) {
+                $cookies_cur[] = $this->config->get('config_currency' );
+            }                
+        }
 
-        if ($recacheOption == '3') {
-            foreach ($languages as $language) {
-                foreach ($currencies as $currency) {
-                    if (($language['code'] != $this->config->get('config_language')) || ($currency['code'] != $this->config->get('config_currency'))) {
-                            $cookies[] = 'language=' . $language['code'] . ';currency=' . $currency['code'];
-                    }
+        foreach ( $cookies_lang as $cookie_lang ) {
+            if ( $cookie_lang === '' ) {
+                $lang_cookie = $cookie_lang;
+            } else {
+                $lang_cookie = ';language=' . $cookie_lang;
+            }
+            foreach ( $cookies_cur as $cookie_cur ) {
+                if ( $cookie_cur === '' ) {
+                    $cur_cookie = $cookie_cur;
+                } else {
+                    $cur_cookie = ';currency=' . $cookie_cur;
                 }
+                $cookies[] = $lang_cookie . $cur_cookie . $cookie_esi;
             }
         }
 
