@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+    <name>LScache Menu</name>
+    <code>LScache On Main Menu</code>
+    <version>1.0.0></version>
+    <author>Gilad Levi</author>
+    <link>https://bytii.cloud</link>
+
+    <file path="admin/view/template/extension/module/lscache.twig">
+        <operation>
+            <search>
+                <![CDATA[<div class="tab-pane {{tabtool.check(tab,'general')}}" id="tab-general">
+    ]]>
+            </search>
+            <add position="after">
+                <![CDATA[
+            <div class="form-group">
+                <label class="col-sm-2 control-label" for="input-menu">
+                  <span data-toggle="tooltip" title="" data-original-title="Add Primary Menu In admin">{{text_add_menu}}</span></label>
+                <div class="col-sm-5">
+                  <label class="radio-inline"><input name="module_lscache_menu" value="1" {% if module_lscache_menu %} checked="checked" {% endif %} type="radio">
+                    {{ text_yes }}
+                  </label>
+                  <label class="radio-inline"><input name="module_lscache_menu" value="0" {% if not module_lscache_menu %} checked="checked" {% endif %} type="radio">
+                    {{ text_no }}
+                  </label>
+                </div>
+              </div>
+	]]>
+            </add>
+        </operation>
+    </file>
+    <file path="admin/language/en-gb/extension/module/lscache.php">
+        <operation>
+            <search>
+                <![CDATA[ 
+                $_['esi_disabled'] = 'ESI Disabled';
+    ]]>
+            </search>
+            <add position="after">
+                <![CDATA[
+                $_['text_add_menu'] = 'Enable Main Menu';
+    ]]>
+            </add>
+        </operation>
+    </file>
+
+    <file path="admin/controller/common/column_left.php">
+        <operation>
+            <search>
+                <![CDATA[$attribute = array();]]>
+            </search>
+            <add position="after">
+                <![CDATA[
+            if($this->config->get('module_lscache_menu')){
+
+			$data['menus'][] = array(
+				'id'       => 'menu-lscache',
+				'icon'	   => 'fa-bolt',
+				'name'	   => $this->language->get('text_lscache_menu'),
+				'href'     => $this->url->link('extension/module/lscache','user_token=' . $this->session->data['user_token'], true),
+				'children' => array()
+			);
+		 }
+    ]]>
+            </add>
+        </operation>
+    </file>
+
+    <file path="admin/language/en-gb/common/column_left.php">
+        <operation>
+            <search>
+                <![CDATA['Other Statuses';]]>
+            </search>
+            <add position="after">
+                <![CDATA[
+              $_['text_lscache_menu']         = 'LScache';
+              ]]>
+            </add>
+        </operation>
+    </file>
+</modification>
