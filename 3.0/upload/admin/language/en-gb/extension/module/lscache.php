@@ -39,7 +39,7 @@ $_['entry_loglevel']     = 'Logging Level';
 $_['entry_login_cachable']     = 'Page Cache for Logged-in Users';
 $_['entry_vary_mobile']     = 'Separate View for Mobile Device';
 $_['entry_vary_safari']     = 'Separate View for Safari Browser';
-$_['entry_vary_login']     = 'Seperate View for Logged-in Users';
+$_['entry_vary_login']     = 'Separate View for Logged-in Users';
 $_['entry_purge_system_cache']     = 'Purge System Cache';
 $_['entry_ajax_wishlist']     = 'Ajax Load Wishlist';
 $_['entry_ajax_compare']     = 'Ajax Load Compare';
@@ -67,7 +67,7 @@ $_['hint_include_urls'] = "Please input one URL per line. \neg: \n/index.php?rou
 $_['hint_exclude_login_urls'] = "Please input one URL per line. \neg: \n/account/register";
 $_['hint_exclude_urls'] = "Please input one URL per line. \neg: \n/product/list/latest";
 $_['hint_purge_urls'] = "Please input one full URL per line. \neg: \nhttps://www.your.site/product/nostock/item1";
-$_['help_purge_category']     = 'Purge Product Category cache after saving an Product';
+$_['help_purge_category']     = 'Purge Product Category cache after saving a Product';
 
 $_['help_purge_system_cache']     = 'Purge all Opencart system cache after purge all LiteSpeed Cache';
 $_['help_esi_ttl']     = 'ESI module cache lifetime in seconds';
