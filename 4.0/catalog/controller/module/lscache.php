@@ -28,7 +28,7 @@ class Lscache extends \Opencart\System\Engine\Controller {
 
         //$this->log('init:' . $route . PHP_EOL, self::LOG_DEBUG);
         
-        if ($route == "extension/litespeed/module/lscache|renderESI") {
+        if ($route == "extension/litespeed/module/lscache.renderESI") {
             $this->lscacheInit();
             return; //ESI render
         } else if ($this->lscache->pageCachable) {
@@ -155,8 +155,8 @@ class Lscache extends \Opencart\System\Engine\Controller {
 
         $this->log('route:' . $route . PHP_EOL, self::LOG_DEBUG);
 
-        $this->event->unregister('controller/*/before', 'extension/litespeed/module/lscache|onAfterInitialize');
-        $this->event->register('controller/' . $route . '/after', new Action('extension/litespeed/module/lscache|onAfterRender'));
+        $this->event->unregister('controller/*/before', 'extension/litespeed/module/lscache.onAfterInitialize');
+        $this->event->register('controller/' . $route . '/after', new Action('extension/litespeed/module/lscache.onAfterRender'));
 
         //$this->log('page cachable:' . $this->lscache->pageCachable);
 
@@ -169,10 +169,10 @@ class Lscache extends \Opencart\System\Engine\Controller {
                     if( ($pos = strpos($route,'|'))!==FALSE  ){
                         $route = substr($route, 0, $pos) ;
                     }                    
-                    $this->event->register('controller/' . $route . '/after', new Action('extension/litespeed/module/lscache|onAfterRenderModule'));
+                    $this->event->register('controller/' . $route . '/after', new Action('extension/litespeed/module/lscache.onAfterRenderModule'));
                 }
             }
-            //$this->event->register('model/setting/module/getModule', new Action('extension/litespeed/module/lscache|onAfterGetModule'));
+            //$this->event->register('model/setting/module/getModule', new Action('extension/litespeed/module/lscache.onAfterGetModule'));
         }
     }
 
@@ -193,7 +193,7 @@ class Lscache extends \Opencart\System\Engine\Controller {
         $module = $esiModules[$esiKey];
         $esiType = $module['esi_type'];
 
-        $link = $this->url->link('extension/litespeed/module/lscache|renderESI', '');
+        $link = $this->url->link('extension/litespeed/module/lscache.renderESI', 'language=' . $this->config->get('config_language'));
         $link .= '&esiRoute=' . $route;
         if (isset($module['module']) && ($module['name'] != $module['module'])) {
             $link .= '&module_id=' . $module['module'];
@@ -421,6 +421,13 @@ class Lscache extends \Opencart\System\Engine\Controller {
             $vary['language'] = $this->session->data['language'];
         }
 
+
+        //cookie not enabled
+        if ((count($vary) == 0) && !$this->checkCookiesEnabled()) {
+            return;
+        }
+
+
         if ($this->customer->isLogged() && isset($this->lscache->setting['module_lscache_vary_login']) && ($this->lscache->setting['module_lscache_vary_login'] == '1')) {
             $vary['session'] = 'loggedIn';
         }
@@ -558,17 +565,20 @@ class Lscache extends \Opencart\System\Engine\Controller {
             return;
         }
 
-        $ajax = 'wishlist.add("-1");';
-        if ($this->lscache->esiEnabled && isset($this->lscache->setting['module_lscache_ajax_wishlist']) && ($this->lscache->setting['module_lscache_ajax_wishlist'] == '0')) {
-            $ajax = '';
-        }
+        // $ajax = 'wishlist.add("-1");';
+        // if ($this->lscache->esiEnabled && isset($this->lscache->setting['module_lscache_ajax_wishlist']) && ($this->lscache->setting['module_lscache_ajax_wishlist'] == '0')) {
+        //     $ajax = '';
+        // }
 
-        if (isset($this->lscache->setting['module_lscache_ajax_compare']) && ($this->lscache->setting['module_lscache_ajax_compare'] == '1')) {
-            $ajax .= 'compare.add("-1");';
-        }
+        // if (isset($this->lscache->setting['module_lscache_ajax_compare']) && ($this->lscache->setting['module_lscache_ajax_compare'] == '1')) {
+        //     $ajax .= 'compare.add("-1");';
+        // }
+
+        $url = $this->url->link('common/cart.info', 'language=' . $this->config->get('config_language'));
+        $ajax = '$("#header-cart").load("'. $url . '");';
 
         if (!$this->lscache->esiEnabled || (isset($this->lscache->setting['module_lscache_ajax_shopcart']) && ($this->lscache->setting['module_lscache_ajax_shopcart'] == '1'))) {
-            $output .= '<script>$(document).ready(function() {try{ ' . $ajax . ' cart.remove("-1");} catch(err){console.log(err.message);}});</script>';
+            $output .= '<script>$(document).ready(function() {try{ ' . $ajax . '} catch(err){console.log(err.message);}});</script>';
         } else if (!empty($ajax)) {
             $output .= '<script>$(document).ready(function() { try {  ' . $ajax . ' } catch(err){console.log(err.message);}});</script>';
         }
@@ -887,12 +897,17 @@ class Lscache extends \Opencart\System\Engine\Controller {
 
     private function crawlUrls($urls, $cli = false) {
         set_time_limit(0);
+
         $count = count($urls);
         if ($count < 1) {
             return "";
         }
 
+        $cached = 0;
         $acceptCode = array(200, 201);
+        $begin = microtime();
+        $success = 0;
+        $current = 1;
 
         ob_implicit_flush(TRUE);
         if (ob_get_contents()) {
@@ -907,91 +922,105 @@ class Lscache extends \Opencart\System\Engine\Controller {
         } else {
             foreach($recacheUserAgents as $ua){
                 if(strpos($ua, 'lscache_runner')===false){
-                    $ua = $ua . ' lscache_runner';
+                    $ua = $ua . ' lscache-runner';
                 }
             }
         }
 
         if ($this->lscache->esiEnabled) {
-            $cookies = array('', 'lsc_private=e70f67d087a65a305e80267ba3bfbc97');
+            $cookies = array('', '_lscache_vary=session%3AloggedOut');
         } else {
             $cookies = array('');
         }
 
         $this->load->model('localisation/language');
-        $languages = $this->model_localisation_language->getLanguages();
-        if ($recacheOption == '1') {
-            foreach ($languages as $result) {
-                if ($result['status']) {
-                    $languages[] = array(
-                        'code' => $result['code'],
-                        'name' => $result['name'],
-                    );
-                }
-                if (($result['code'] != $this->config->get('config_language'))) {
-                    $cookies[] = 'language=' . $result['code'] ;
-                }
+        $languages = array();
+        $results = $this->model_localisation_language->getLanguages();
+        foreach ($results as $result) {
+            if ($result['status']) {
+                $languages[] = array(
+                    'code' => $result['code'],
+                    'name' => $result['name'],
+                );
+            }
+            if (($recacheOption == '1') && ($result['code'] != $this->config->get('config_language'))) {
+                $cookies[] = '_lscache_vary=language%3A' . $result['code'] . ';language=' . $result['code'] ;
+            }    
+        }
+
+        $this->load->model('localisation/currency');
+        $currencies = array();
+        $results = $this->model_localisation_currency->getCurrencies();
+        foreach ($results as $result) {
+            if ($result['status']) {
+                $currencies[] = array(
+                    'code' => $result['code'],
+                    'title' => $result['title'],
+                );
+            }
+
+            if (($recacheOption == '2') && ($result['code'] != $this->config->get('config_currency'))) {
+                $cookies[] = '_lscache_vary=currency%3A' . $result['code'] . ';currency=' . $result['code'];
             }
         }
-        
-        $this->load->model('localisation/currency');
-        $currencies = $this->model_localisation_currency->getCurrencies();
-        if ($recacheOption == '2') {
-            foreach ($currencies as $result) {
-                if ($result['status']) {
-                    $currencies[] = array(
-                        'code' => $result['code'],
-                        'title' => $result['title'],
-                    );
-                }
-
-                if (($result['code'] != $this->config->get('config_currency'))) {
-                    $cookies[] = 'currency=' . $result['code'];
-                }
-            }
-    }
 
         if ($recacheOption == '3') {
             foreach ($languages as $language) {
                 foreach ($currencies as $currency) {
-                    if (($language['code'] != $this->config->get('config_language')) || ($currency['code'] != $this->config->get('config_currency'))) {
-                            $cookies[] = 'language=' . $language['code'] . ';currency=' . $currency['code'];
+                    if (($language['code'] != $this->config->get('config_language')) && ($currency['code'] != $this->config->get('config_currency'))) {
+                        $cookies[] = '_lscache_vary=language%3A' . $language['code'] . ',currency%3A' . $currency['code'] . ';language=' . $language['code'] . ';currency=' . $currency['code'];
                     }
                 }
             }
         }
 
-        foreach ($recacheUserAgents as $userAgent) {
-            echo ($cli ? '' : '<br/><br/>') . PHP_EOL . PHP_EOL . 'crawl useragent: ' . $userAgent . ($cli ? '' : '<br/>') . PHP_EOL;
-            
-            foreach ($cookies as $cookie) {
-                echo ($cli ? '' : '<br/>') . PHP_EOL . 'crawl cookie: ' . $cookie . ($cli ? '' : '<br/>') . PHP_EOL ;
+        foreach ($urls as $url) {
 
-                $cookie1 = $cookie;
-                if (empty($cookie) || !str_starts_with($cookie,'_lscache_vary')){
-                    if(!empty($cookie)){
-                        $cookie1 = $this->getUniqueVaryCookie() . $cookie;
-                    }
-                    $userAgent1 = str_replace('lscache_runner', '', $userAgent);
-                    $ch = $this->getCurlHandler($urls[0], $userAgent1, $cookie1);
-                    $buffer = curl_exec($ch);
-                    $responseVaryCookie = $this->getResponseVaryCookie($buffer);
-                    if(!empty($responseVaryCookie)){
-                        $cookie1 = $responseVaryCookie . $cookie;
-                        echo 'send cookie: ' . $cookie1 . ($cli ? '' : '<br/>') . PHP_EOL ;
-                    }
+            $url = str_replace('&amp;', '&', $url);
+
+            foreach ($recacheUserAgents as $userAgent) {
+                $cookies1 = $cookies;
+
+                $varyMobile = false;
+                if (isset($this->lscache->setting['module_lscache_vary_mobile']) && ($this->lscache->setting['module_lscache_vary_mobile'] == '1') && $this->checkMobile($userAgent)) {
+                    $device = $this->checkMobile($userAgent);
+                    $cookies1[] = '_lscache_vary=device%3A' . $device;
+                    $varyMobile = true;
                 }
 
-                $current = 1;
-                $success = 0;
+                $varySafari = false;
+                if (isset($this->lscache->setting['module_lscache_vary_safari']) && ($this->lscache->setting['module_lscache_vary_safari'] == '1') && $this->checkSafari($userAgent)) {
+                    $cookies1[] = '_lscache_vary=browser%3Asafari';
+                    $varySafari = true;
+                }
 
-                foreach ($urls as $url) {
-                    
-                    $url = str_replace('&amp;', '&', $url);
+                if($varyMobile && $varySafari){
+                    $cookies1[] = '_lscache_vary=browser%3Asafari%2Cdevice%3A' . $device ;
+                }
+                
+                foreach ($cookies1 as $cookie) {
                     $this->log('crawl:' . $url . '  useragent:' . $userAgent . '    cookie:' . $cookie);
-                    $ch = $this->getCurlHandler($url, $userAgent, $cookie1);
-
                     $start = microtime();
+                    $ch = curl_init();
+                    curl_setopt($ch, CURLOPT_URL, $url);
+                    curl_setopt($ch, CURLOPT_HEADER, false);
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+                    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+                    curl_setopt($ch, CURLOPT_MAXREDIRS, 1);
+                    curl_setopt($ch, CURLOPT_ENCODING, "");
+                    curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+
+                    if ($cli && ($userAgent == 'lscache_runner')) {
+                        $userAgent = 'lscache_walker';
+                    }
+
+                    curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);
+
+                    if ($cookie != '') {
+                        curl_setopt($ch, CURLOPT_COOKIE, $cookie);
+                    }
 
                     $buffer = curl_exec($ch);
                     $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -1014,61 +1043,22 @@ class Lscache extends \Opencart\System\Engine\Controller {
 
                     $end = microtime();
                     $diff = $this->microtimeMinus($start, $end);
-                    //usleep(round($diff));
-
-                    echo $current . '/' . $count . ' ' . $url . ' httpcode: ' . $httpcode  . ($cli ? '' : '<br/>') .  PHP_EOL;
-                    
-                    flush();
-                    $current++;
+                    usleep(round($diff));
                 }
             }
-        }
-    }
-    
-    private function getCurlHandler($url, $userAgent, $cookie=''){
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_HEADER, 1);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($ch, CURLOPT_MAXREDIRS, 1);
-        curl_setopt($ch, CURLOPT_ENCODING, "");
-        curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);
-        
-        if(!empty($cookie)){
-            curl_setopt($ch, CURLOPT_COOKIE, $cookie);
-        }
-        
-        return $ch;
-    }
-
-    //unique vary cookie is to make sure not hit any cache
-    private function getUniqueVaryCookie() {
-        return '_lscache_vary=' . uniqid('lscache') . ';' ;
-    }
-    
-    private function getResponseVaryCookie($buffer) {
-        $matches = array();
-        preg_match_all('/^Set-Cookie:\s*([^;]*)/mi', $buffer, $matches);
-        foreach($matches[1] as $item) {
-            $cookies = array();
-            parse_str($item, $cookies);
-            if(isset($cookies['_lscache_vary'])){
-                $varyCookie = $cookies['_lscache_vary'];
-                $varyCookie1 = str_replace(':', '%3A', $varyCookie);
-                return '_lscache_vary=' . $varyCookie1 . ';';
+            if ($cli) {
+                echo $current . '/' . $count . ' ' . $url . ' : ' . $httpcode . PHP_EOL;
+            } else {
+                echo $current . '/' . $count . ' ' . $url . ' : ' . $httpcode . '<br/>' . PHP_EOL;
             }
+            flush();
+
+            $current++;
         }
-        
-        return '';
+
     }
 
-            
-    
     public function purgeAll() {
         $cli = false;
 
