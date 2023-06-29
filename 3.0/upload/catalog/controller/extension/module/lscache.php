@@ -922,7 +922,6 @@ class ControllerExtensionModuleLSCache extends Controller
 
         $this->load->model('localisation/language');
         If ( ($recacheOption=='1') || ($recacheOption=='3') ) {
-        {
             $languages = $this->model_localisation_language->getLanguages();
             foreach ($languages as $result) {
                 if ($result['status']) {
