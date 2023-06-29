@@ -421,13 +421,6 @@ class Lscache extends \Opencart\System\Engine\Controller {
             $vary['language'] = $this->session->data['language'];
         }
 
-
-        //cookie not enabled
-        if ((count($vary) == 0) && !$this->checkCookiesEnabled()) {
-            return;
-        }
-
-
         if ($this->customer->isLogged() && isset($this->lscache->setting['module_lscache_vary_login']) && ($this->lscache->setting['module_lscache_vary_login'] == '1')) {
             $vary['session'] = 'loggedIn';
         }
@@ -783,10 +776,10 @@ class Lscache extends \Opencart\System\Engine\Controller {
         echo 'recache site urls...' . ($cli ? '' : '<br>') . PHP_EOL;
 
         $urls = array();
-        $urls[] = $this->url->link('common/home');
-        $urls[] = $this->url->link('information/contact');
-        $urls[] = $this->url->link('information/sitemap');
-        $urls[] = $this->url->link('product/manufacturer');
+        $urls[] = $this->url->link('common/home', 'language=' . $this->config->get('config_language'));
+        $urls[] = $this->url->link('information/contact', 'language=' . $this->config->get('config_language'));
+        $urls[] = $this->url->link('information/sitemap', 'language=' . $this->config->get('config_language'));
+        $urls[] = $this->url->link('product/manufacturer', 'language=' . $this->config->get('config_language'));
         $urls[] = HTTP_SERVER;
         $urls[] = HTTP_SERVER . 'index.php';
         if ($this->lscache->includeUrls) {
@@ -803,7 +796,7 @@ class Lscache extends \Opencart\System\Engine\Controller {
         echo 'recache page urls...' . ($cli ? '' : '<br>') . PHP_EOL;
         foreach ($pages as $page) {
             if ($page['cacheLogout']) {
-                $urls[] = $this->url->link($page['route'], '');
+                $urls[] = $this->url->link($page['route'], 'language=' . $this->config->get('config_language'));
             }
         }
         $this->crawlUrls($urls, $cli);
@@ -830,25 +823,25 @@ class Lscache extends \Opencart\System\Engine\Controller {
                         $categories_5 = $this->model_catalog_category->getCategories($category_4['category_id']);
                         foreach ($categories_5 as $category_5) {
                             $categoryPath[$category_5['category_id']] = $category_1['category_id'] . '_' . $category_2['category_id'] . '_' . $category_3['category_id'] . '_' . $category_4['category_id'] . '_' . $category_5['category_id'];
-                            $urls[] = $this->url->link('product/category', 'path=' . $category_1['category_id'] . '_' . $category_2['category_id'] . '_' . $category_3['category_id'] . '_' . $category_4['category_id'] . '_' . $category_5['category_id']);
+                            $urls[] = $this->url->link('product/category', 'language=' . $this->config->get('config_language') . '&path=' . $category_1['category_id'] . '_' . $category_2['category_id'] . '_' . $category_3['category_id'] . '_' . $category_4['category_id'] . '_' . $category_5['category_id']);
                         }
-                        $urls[] = $this->url->link('product/category', 'path=' . $category_1['category_id'] . '_' . $category_2['category_id'] . '_' . $category_3['category_id'] . '_' . $category_4['category_id']);
+                        $urls[] = $this->url->link('product/category', 'language=' . $this->config->get('config_language') . '&path=' . $category_1['category_id'] . '_' . $category_2['category_id'] . '_' . $category_3['category_id'] . '_' . $category_4['category_id']);
                         $filter_data = array('filter_category_id' => $category_4['category_id']);
                         $num_pages = $this->CountNumberOfPages($filter_data);
                         for ($num_page = 2; $num_page <= $num_pages; $num_page++) {
-                            $urls[] = $this->url->link('product/category', 'path=' . $category_1['category_id'] . '_' . $category_2['category_id'] . '_' . $category_3['category_id'] . '_' . $category_4['category_id'] . '&page=' . $num_page);
+                            $urls[] = $this->url->link('product/category', 'language=' . $this->config->get('config_language') . '&path=' . $category_1['category_id'] . '_' . $category_2['category_id'] . '_' . $category_3['category_id'] . '_' . $category_4['category_id'] . '&page=' . $num_page);
                         }
                     }
-                    $urls[] = $this->url->link('product/category', 'path=' . $category_1['category_id'] . '_' . $category_2['category_id'] . '_' . $category_3['category_id']);
+                    $urls[] = $this->url->link('product/category', 'language=' . $this->config->get('config_language') . '&path=' . $category_1['category_id'] . '_' . $category_2['category_id'] . '_' . $category_3['category_id']);
                     $filter_data = array('filter_category_id' => $category_3['category_id']);
                     $num_pages = $this->CountNumberOfPages($filter_data);
                     for ($num_page = 2; $num_page <= $num_pages; $num_page++) {
-                        $urls[] = $this->url->link('product/category', 'path=' . $category_1['category_id'] . '_' . $category_2['category_id'] . '_' . $category_3['category_id'] . '&page=' . $num_page);
+                        $urls[] = $this->url->link('product/category', 'language=' . $this->config->get('config_language') . '&path=' . $category_1['category_id'] . '_' . $category_2['category_id'] . '_' . $category_3['category_id'] . '&page=' . $num_page);
                     }
                 }
-                $urls[] = $this->url->link('product/category', 'path=' . $category_1['category_id'] . '_' . $category_2['category_id']);
+                $urls[] = $this->url->link('product/category', 'language=' . $this->config->get('config_language') . '&path=' . $category_1['category_id'] . '_' . $category_2['category_id']);
             }
-            $urls[] = $this->url->link('product/category', 'path=' . $category_1['category_id']);
+            $urls[] = $this->url->link('product/category', 'language=' . $this->config->get('config_language') . '&path=' . $category_1['category_id']);
         }
         $this->crawlUrls($urls, $cli);
         $urls = array();
@@ -857,7 +850,7 @@ class Lscache extends \Opencart\System\Engine\Controller {
         echo 'recache manufacturers urls...' . ($cli ? '' : '<br>') . PHP_EOL;
         $this->load->model('catalog/manufacturer');
         foreach ($this->model_catalog_manufacturer->getManufacturers() as $result) {
-            $urls[] = $this->url->link('product/manufacturer/info', 'manufacturer_id=' . $result['manufacturer_id']);
+            $urls[] = $this->url->link('product/manufacturer/info', 'language=' . $this->config->get('config_language') . '&manufacturer_id=' . $result['manufacturer_id']);
         }
         $this->crawlUrls($urls, $cli);
         $urls = array();
@@ -865,7 +858,7 @@ class Lscache extends \Opencart\System\Engine\Controller {
         echo 'recache information urls...' . ($cli ? '' : '<br>') . PHP_EOL;
         $this->load->model('catalog/information');
         foreach ($this->model_catalog_information->getInformations() as $result) {
-            $urls[] = $this->url->link('information/information', 'information_id=' . $result['information_id']);
+            $urls[] = $this->url->link('information/information', 'language=' . $this->config->get('config_language') . '&information_id=' . $result['information_id']);
         }
         $this->crawlUrls($urls, $cli);
         $urls = array();
@@ -874,13 +867,13 @@ class Lscache extends \Opencart\System\Engine\Controller {
         foreach ($this->model_catalog_product->getProducts() as $result) {
             foreach ($this->model_catalog_product->getCategories($result['product_id']) as $category) {
                 if (isset($categoryPath[$category['category_id']])) {
-                    $urls[] = $this->url->link('product/product', 'path=' . $categoryPath[$category['category_id']] . '&product_id=' . $result['product_id']);
+                    $urls[] = $this->url->link('product/product', 'language=' . $this->config->get('config_language') . '&path=' . $categoryPath[$category['category_id']] . '&product_id=' . $result['product_id']);
                 }
             }
 
             $urls[] = $this->url->link('product/product', 'product_id=' . $result['product_id']);
             if (defined('JOURNAL3_ACTIVE')) {
-                $urls[] = $this->url->link('journal3/product', 'product_id=' . $result['product_id'] . '&popup=quickview');
+                $urls[] = $this->url->link('journal3/product', 'language=' . $this->config->get('config_language') . '&product_id=' . $result['product_id'] . '&popup=quickview');
             }
         }
 
@@ -895,19 +888,15 @@ class Lscache extends \Opencart\System\Engine\Controller {
         }
     }
 
+
     private function crawlUrls($urls, $cli = false) {
         set_time_limit(0);
-
         $count = count($urls);
         if ($count < 1) {
             return "";
         }
 
-        $cached = 0;
         $acceptCode = array(200, 201);
-        $begin = microtime();
-        $success = 0;
-        $current = 1;
 
         ob_implicit_flush(TRUE);
         if (ob_get_contents()) {
@@ -922,105 +911,106 @@ class Lscache extends \Opencart\System\Engine\Controller {
         } else {
             foreach($recacheUserAgents as $ua){
                 if(strpos($ua, 'lscache_runner')===false){
-                    $ua = $ua . ' lscache-runner';
+                    $ua = $ua . ' lscache_runner';
                 }
             }
         }
 
-        if ($this->lscache->esiEnabled) {
-            $cookies = array('', '_lscache_vary=session%3AloggedOut');
+        $cookies = array('');
+
+        If ( $this->lscache->esiEnabled ) {
+            $cookie_esi = 'lsc_private=e70f67d087a65a305e80267ba3bfbc97';
         } else {
-            $cookies = array('');
+            $cookie_esi = '';
         }
+
+        $cookies_lang = array('');
+        $cookies_cur = array('');
 
         $this->load->model('localisation/language');
-        $languages = array();
-        $results = $this->model_localisation_language->getLanguages();
-        foreach ($results as $result) {
-            if ($result['status']) {
-                $languages[] = array(
-                    'code' => $result['code'],
-                    'name' => $result['name'],
-                );
+        If ( ($recacheOption=='1') || ($recacheOption=='3') ) {
+            $languages = $this->model_localisation_language->getLanguages();
+            foreach ($languages as $result) {
+                if ($result['status']) {
+                    $cookies_lang[] = $result['code'];
+                }
             }
-            if (($recacheOption == '1') && ($result['code'] != $this->config->get('config_language'))) {
-                $cookies[] = '_lscache_vary=language%3A' . $result['code'] . ';language=' . $result['code'] ;
-            }    
-        }
-
-        $this->load->model('localisation/currency');
-        $currencies = array();
-        $results = $this->model_localisation_currency->getCurrencies();
-        foreach ($results as $result) {
-            if ($result['status']) {
-                $currencies[] = array(
-                    'code' => $result['code'],
-                    'title' => $result['title'],
-                );
-            }
-
-            if (($recacheOption == '2') && ($result['code'] != $this->config->get('config_currency'))) {
-                $cookies[] = '_lscache_vary=currency%3A' . $result['code'] . ';currency=' . $result['code'];
+        } else {
+            If ( $this->config->get('config_language' )) { 
+                $cookies_lang = $this->config->get('config_language' );
             }
         }
 
-        if ($recacheOption == '3') {
-            foreach ($languages as $language) {
-                foreach ($currencies as $currency) {
-                    if (($language['code'] != $this->config->get('config_language')) && ($currency['code'] != $this->config->get('config_currency'))) {
-                        $cookies[] = '_lscache_vary=language%3A' . $language['code'] . ',currency%3A' . $currency['code'] . ';language=' . $language['code'] . ';currency=' . $currency['code'];
+        If ( ($recacheOption=='2')  || ($recacheOption=='3') ) {
+            $this->load->model('localisation/currency');
+            $currencies = $this->model_localisation_currency->getCurrencies();
+            foreach ($currencies as $result) {
+                if ($result['status']) {
+                    $cookies_cur[] = $result['code'];
+                }
+            }
+        } else {
+            If($this->config->get('config_currency' )) {
+                $cookies_cur[] = $this->config->get('config_currency' );
+            }                
+        }
+
+        foreach ( $cookies_lang as $cookie_lang ) {
+            if ( $cookie_lang === '' ) {
+                $lang_cookie = $cookie_lang;
+            } else {
+                $lang_cookie = ';language=' . $cookie_lang;
+            }
+            foreach ( $cookies_cur as $cookie_cur ) {
+                if ( $cookie_cur === '' ) {
+                    $cur_cookie = $cookie_cur;
+                } else {
+                    $cur_cookie = ';currency=' . $cookie_cur;
+                }
+                $cookies[] = $lang_cookie . $cur_cookie . $cookie_esi;
+            }
+        }
+
+        foreach ($recacheUserAgents as $userAgent) {
+            echo ($cli ? '' : '<br/><br/>') . PHP_EOL . PHP_EOL . 'crawl useragent: ' . $userAgent . ($cli ? '' : '<br/>') . PHP_EOL;
+            
+            foreach ($cookies as $cookie) {
+                echo ($cli ? '' : '<br/>') . PHP_EOL . 'crawl cookie: ' . $cookie . ($cli ? '' : '<br/>') . PHP_EOL ;
+
+                $cookie1 = $cookie;
+                if (empty($cookie) || (substr($cookie,0,13)!='_lscache_vary')){
+                    if(!empty($cookie)){
+                        $cookie1 = $this->getUniqueVaryCookie() . $cookie;
+                    }
+                    $userAgent1 = str_replace('lscache_runner', '', $userAgent);
+                    $ch = $this->getCurlHandler($urls[0], $userAgent1, $cookie1);
+                    $buffer = curl_exec($ch);
+                    $responseVaryCookie = $this->getResponseVaryCookie($buffer);
+                    if(!empty($responseVaryCookie)){
+                        $cookie1 = $responseVaryCookie . $cookie;
+                        echo 'send cookie: ' . $cookie1 . ($cli ? '' : '<br/>') . PHP_EOL ;
                     }
                 }
-            }
-        }
 
-        foreach ($urls as $url) {
+                $current = 1;
+                $success = 0;
 
-            $url = str_replace('&amp;', '&', $url);
+                foreach ($urls as $url) {
+                    
+                    $url = str_replace('&amp;', '&', $url);
+                    $userAgent1 = $userAgent;
+                    $refreshExpiration = isset($this->lscache->setting['module_lscache_refresh_expiration']) ? $this->lscache->setting['module_lscache_refresh_expiration'] : 0;
+                    if($refreshExpiration){
+                        if (LITESPEED_SERVER_TYPE === 'LITESPEED_SERVER_OLS') {
+                            $cookie1 = $this->getUniqueVaryCookie() . $cookie;
+                        } else {
+                            $userAgent1 = str_replace('lscache_runner', 'lscache_walker', $userAgent);
+                        }
+                    }
+                    $this->log('crawl:' . $url . '  useragent:' . $userAgent1 . '    cookie:' . $cookie);
+                    $ch = $this->getCurlHandler($url, $userAgent1, $cookie1);
 
-            foreach ($recacheUserAgents as $userAgent) {
-                $cookies1 = $cookies;
-
-                $varyMobile = false;
-                if (isset($this->lscache->setting['module_lscache_vary_mobile']) && ($this->lscache->setting['module_lscache_vary_mobile'] == '1') && $this->checkMobile($userAgent)) {
-                    $device = $this->checkMobile($userAgent);
-                    $cookies1[] = '_lscache_vary=device%3A' . $device;
-                    $varyMobile = true;
-                }
-
-                $varySafari = false;
-                if (isset($this->lscache->setting['module_lscache_vary_safari']) && ($this->lscache->setting['module_lscache_vary_safari'] == '1') && $this->checkSafari($userAgent)) {
-                    $cookies1[] = '_lscache_vary=browser%3Asafari';
-                    $varySafari = true;
-                }
-
-                if($varyMobile && $varySafari){
-                    $cookies1[] = '_lscache_vary=browser%3Asafari%2Cdevice%3A' . $device ;
-                }
-                
-                foreach ($cookies1 as $cookie) {
-                    $this->log('crawl:' . $url . '  useragent:' . $userAgent . '    cookie:' . $cookie);
                     $start = microtime();
-                    $ch = curl_init();
-                    curl_setopt($ch, CURLOPT_URL, $url);
-                    curl_setopt($ch, CURLOPT_HEADER, false);
-                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-                    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-                    curl_setopt($ch, CURLOPT_MAXREDIRS, 1);
-                    curl_setopt($ch, CURLOPT_ENCODING, "");
-                    curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-
-                    if ($cli && ($userAgent == 'lscache_runner')) {
-                        $userAgent = 'lscache_walker';
-                    }
-
-                    curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);
-
-                    if ($cookie != '') {
-                        curl_setopt($ch, CURLOPT_COOKIE, $cookie);
-                    }
 
                     $buffer = curl_exec($ch);
                     $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -1044,21 +1034,60 @@ class Lscache extends \Opencart\System\Engine\Controller {
                     $end = microtime();
                     $diff = $this->microtimeMinus($start, $end);
                     usleep(round($diff));
+
+                    echo $current . '/' . $count . ' ' . $url . ' httpcode: ' . $httpcode  . ($cli ? '' : '<br/>') .  PHP_EOL;
+                    
+                    flush();
+                    $current++;
                 }
             }
-
-            if ($cli) {
-                echo $current . '/' . $count . ' ' . $url . ' : ' . $httpcode . PHP_EOL;
-            } else {
-                echo $current . '/' . $count . ' ' . $url . ' : ' . $httpcode . '<br/>' . PHP_EOL;
-            }
-            flush();
-
-            $current++;
         }
+    }
+    
+    private function getCurlHandler($url, $userAgent, $cookie=''){
 
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_HEADER, 1);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($ch, CURLOPT_MAXREDIRS, 1);
+        curl_setopt($ch, CURLOPT_ENCODING, "");
+        curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);
+        
+        if(!empty($cookie)){
+            curl_setopt($ch, CURLOPT_COOKIE, $cookie);
+        }
+        
+        return $ch;
     }
 
+    //unique vary cookie is to make sure not hit any cache
+    private function getUniqueVaryCookie() {
+        return '_lscache_vary=' . uniqid('lscache') . ';' ;
+    }
+    
+    private function getResponseVaryCookie($buffer) {
+        $matches = array();
+        preg_match_all('/^Set-Cookie:\s*([^;]*)/mi', $buffer, $matches);
+        foreach($matches[1] as $item) {
+            $cookies = array();
+            parse_str($item, $cookies);
+            if(isset($cookies['_lscache_vary'])){
+                $varyCookie = $cookies['_lscache_vary'];
+                $varyCookie1 = str_replace(':', '%3A', $varyCookie);
+                return '_lscache_vary=' . $varyCookie1 . ';';
+            }
+        }
+        
+        return '';
+    }
+
+
+    
     public function purgeAll() {
         $cli = false;
 

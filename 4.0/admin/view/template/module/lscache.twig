@@ -128,6 +128,16 @@
                 </div>
 
                 <div class="row mb3">
+                  <label class="col-sm-2 control-label" for="module_lscache_refresh_expiration"><span data-toggle="tooltip" title="{{ help_refresh_expiration }}">{{ entry_refresh_expiration }}</span></label>
+                  <div class="col-sm-10">
+                    <select name="module_lscache_refresh_expiration" class="form-control">
+                      <option value="0" {{ selectDisable.check(module_lscache_refresh_expiration, '0') }}>{{ text_disabled }}</option>
+                      <option value="1" {{ selectDisable.check(module_lscache_refresh_expiration, '1') }}>{{ text_enabled }}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="row mb3">
                   <label class="col-sm-2 col-form-label" for="module_lscache_purge_category"><span data-toggle="tooltip" title="{{ help_purge_category }}">{{ entry_purge_category }}</label>
                   <div class="col-sm-10">
                     <select name="module_lscache_purge_category" class="form-select">
