@@ -1186,8 +1186,12 @@ class ControllerExtensionModuleLSCache extends Controller
 
     protected function checkMobile($ua='')
     {
-        if(empty($ua)){
+        if(empty($ua) && isset($_SERVER['HTTP_USER_AGENT'])){
             $ua = $_SERVER['HTTP_USER_AGENT'];
+        }
+
+        if (empty($ua)) {
+            return false;
         }
 
         if (defined('JOURNAL3_ACTIVE')) {
@@ -1220,10 +1224,14 @@ class ControllerExtensionModuleLSCache extends Controller
 
     protected function checkSafari($ua='')
     {
-        if(empty($ua)){
+        if(empty($ua) && isset($_SERVER['HTTP_USER_AGENT'])){
             $ua = $_SERVER['HTTP_USER_AGENT'];
         }
-        
+
+        if (empty($ua)) {
+            return false;
+        }
+
         if (strpos($ua, 'CriOS') !== FALSE) {
             return FALSE;
         }
