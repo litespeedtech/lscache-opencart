@@ -987,6 +987,7 @@ class ControllerExtensionModuleLSCache extends Controller
 
                 $current = 1;
                 $success = 0;
+                $fail = 0;
 
                 foreach ($urls as $url) {
                     
@@ -1022,6 +1023,7 @@ class ControllerExtensionModuleLSCache extends Controller
                         return;
                     } else {
                         $this->log('httpcode:' . $httpcode);
+                        $fail++;
                     }
 
                     $end = microtime();
@@ -1032,6 +1034,10 @@ class ControllerExtensionModuleLSCache extends Controller
                     
                     flush();
                     $current++;
+                    if($fail>=5) { 
+                        echo 'Too many failures or exceed max PHP time, please try it again later.';
+                        return;
+                    }
                 }
             }
         }
