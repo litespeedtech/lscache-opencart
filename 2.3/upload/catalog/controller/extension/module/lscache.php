@@ -917,8 +917,8 @@ class ControllerExtensionModuleLSCache extends Controller
             $cookie_esi = '';
         }
 
-        $cookies_lang = array('');
-        $cookies_cur = array('');
+        $cookies_lang = array();
+        $cookies_cur = array();
 
         $this->load->model('localisation/language');
         If ( ($recacheOption=='1') || ($recacheOption=='3') ) {
@@ -960,7 +960,7 @@ class ControllerExtensionModuleLSCache extends Controller
                 } else {
                     $cur_cookie = ';currency=' . $cookie_cur;
                 }
-                $cookies[] = $lang_cookie . $cur_cookie . $cookie_esi;
+                $cookies[] =  $cookie_esi . $lang_cookie . $cur_cookie;
             }
         }
 
@@ -979,10 +979,12 @@ class ControllerExtensionModuleLSCache extends Controller
                     $ch = $this->getCurlHandler($urls[0], $userAgent1, $cookie1);
                     $buffer = curl_exec($ch);
                     $responseVaryCookie = $this->getResponseVaryCookie($buffer);
-                    if(!empty($responseVaryCookie)){
+                    if(empty($responseVaryCookie) || ($responseVaryCookie=='deleted')){
+                        $cookie1 =  $cookie;
+                    } else {
                         $cookie1 = $responseVaryCookie . $cookie;
-                        echo 'send cookie: ' . $cookie1 . ($cli ? '' : '<br/>') . PHP_EOL ;
                     }
+                    echo 'send cookie: ' . $cookie1 . ($cli ? '' : '<br/>') . PHP_EOL ;                        
                 }
 
                 $current = 1;
