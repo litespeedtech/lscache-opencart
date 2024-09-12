@@ -20,9 +20,9 @@ class ControllerExtensionModuleLSCache extends Controller {
             $data["button_recacheAll"] .= $data["text_curl_not_support"];
         }
         
-        $currentLink = $this->url->link('extension/module/lscache', 'token=' . $this->session->data['token'], true);
+        $currentLink = $this->url->link('extension/module/lscache', 'token=' . $this->session->data['token'],true);
         $this->session->data['previouseURL'] = $currentLink;
-        $parentLink = $this->url->link('marketplace/extension', 'token=' . $this->session->data['token'].'&type=module', true);
+        $parentLink = $this->url->link('marketplace/extension', 'token=' . $this->session->data['token'].'&type=module',true);
         $siteUrl = new Url(HTTP_CATALOG, HTTPS_CATALOG);
         $recacheLink = $siteUrl->link('extension/module/lscache/recache', 'token=' . $this->session->data['token'], true);
         $data['success']="";
@@ -51,8 +51,11 @@ class ControllerExtensionModuleLSCache extends Controller {
         
         if (!$this->validate()){
     		$this->log('Invalid Access', self::LOG_ERROR);
-        }
-        else if ($this->request->server['REQUEST_METHOD'] == 'POST') {
+        } else if (($this->request->server['REQUEST_METHOD'] == 'POST') && isset($this->request->post['purgeURL'])) {
+            $msg = $this->purgeUrls();
+            $data["tab"] = "urls";
+            $data['success'] = $msg;
+        } else if (($this->request->server['REQUEST_METHOD'] == 'POST')) {
             $this->session->data['lscacheOption'] = "debug";
             $this->model_extension_module_lscache->editSetting('module_lscache', $this->request->post);
             if(isset($this->session->data['error'])){
@@ -78,22 +81,20 @@ class ControllerExtensionModuleLSCache extends Controller {
             if(!isset($oldSetting["module_lscache_vary_mobile"])){
                 $oldSetting["module_lscache_vary_mobile"] = '0';
             }
-            
+
             if(!isset($oldSetting["module_lscache_vary_safari"])){
                 $oldSetting["module_lscache_vary_safari"] = '0';
             }
             
             if(($oldSetting["module_lscache_vary_mobile"]!= $this->request->post["module_lscache_vary_mobile"]) || ($oldSetting["module_lscache_vary_safari"]!= $this->request->post["module_lscache_vary_safari"])){
-               $data['success'] = $this->language->get('text_commentHtaccess');
-
-               if($lscInstance){
+                $data['success'] = $this->language->get('text_commentHtaccess');
+                if($lscInstance){
                     $lscInstance->purgeAllPublic();
                     $data['success'] .=  '<br><i class="fa fa-check-circle"></i> ' .  $this->language->get('text_purgeSuccess');
                 }
             }
         }
         else if( ($action == 'purgeAll') && $lscInstance){
-            $data['success'] = $this->language->get('text_purgeSuccess');
     		$lscInstance->purgeAllPublic();
             $this->log($lscInstance->getLogBuffer());
             $data['success'] = $this->language->get('text_purgeSuccess');
@@ -211,7 +212,8 @@ class ControllerExtensionModuleLSCache extends Controller {
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
         $data['footer'] = $this->load->controller('common/footer');
-        error_reporting(0);
+        $data['lscache_purge_urls'] = "";
+        
         $this->response->setOutput($this->load->view('extension/module/lscache', $data));
         
     }
@@ -224,16 +226,16 @@ class ControllerExtensionModuleLSCache extends Controller {
         return !$this->error;
     }
     
+
     public function purgeAllButton($route, &$args, &$output){
         if ($this->user && $this->user->hasPermission('modify', 'extension/module/lscache')) {
             $lan = new Language();
             $lan->load('extension/module/lscache');
             $button = '<li><a href="' . $this->url->link('extension/module/lscache', 'token=' . $this->session->data['token'],true) . '&action=purgeAllButton'  . '" data-toggle="tooltip" title="" class="btn" data-original-title="'. $lan->get('button_purgeAll') .'"><i class="fa fa-trash"></i><span class="hidden-xs hidden-sm hidden-md"> Purge All LiteSpeed Cache</span></a></li>';
-            $search = '<ul class="nav pull-right">';
+            $search = '<ul class="nav navbar-nav navbar-right">';
             $output = str_replace($search, $search.$button, $output);
         }
     }
-    
     
 	public function install() {
 		$this->load->model('extension/event');
@@ -273,7 +275,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         $this->model_extension_event->addEvent('lscache_cart_edit', 'catalog/controller/checkout/cart/edit/after', 'extension/module/lscache/editCart');
         $this->model_extension_event->addEvent('lscache_cart_remove', 'catalog/controller/checkout/cart/remove/after', 'extension/module/lscache/editCart');
         $this->model_extension_event->addEvent('lscache_compare_check', 'catalog/controller/product/compare/add/before', 'extension/module/lscache/checkCompare');
-        $this->model_extension_event->addEvent('lscache_compare_edit', 'catalog/controller/product/compare/add/after', 'extension/module/lscache/checkCompare');
+        $this->model_extension_event->addEvent('lscache_compare_edit', 'catalog/controller/product/compare/add/after', 'extension/module/lscache/editCompare');
         $this->model_extension_event->addEvent('lscache_wishlist_check', 'catalog/controller/account/wishlist/add/before', 'extension/module/lscache/checkWishlist');
         $this->model_extension_event->addEvent('lscache_wishlist_edit', 'catalog/controller/account/wishlist/add/after', 'extension/module/lscache/editWishlist');
         $this->model_extension_event->addEvent('lscache_wishlist_display', 'catalog/controller/account/wishlist/after', 'extension/module/lscache/editWishlist');
@@ -283,6 +285,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         $this->model_extension_event->addEvent('lscache_user_logout', 'catalog/model/account/customer/deleteLoginAttempts/after', 'extension/module/lscache/onUserAfterLogout');
         $this->model_extension_event->addEvent('lscache_currency_change', 'catalog/controller/common/currency/currency/before', 'extension/module/lscache/editCurrency');
         $this->model_extension_event->addEvent('lscache_language_change', 'catalog/controller/common/language/language/before', 'extension/module/lscache/editLanguage');
+        $this->model_extension_event->addEvent('lscache_check_error', 'catalog/view/error/*/before', 'extension/module/lscache/checkError');
         
         $this->model_extension_module_lscache->installLSCache();
         $this->initHtaccess();
@@ -298,6 +301,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         } else if (function_exists('phpopcache_reset')){
             phpopcache_reset();
         }
+            
         
 	}
     
@@ -327,7 +331,6 @@ class ControllerExtensionModuleLSCache extends Controller {
 		$this->model_extension_event->deleteEvent('lscache_information_get');
 		$this->model_extension_event->deleteEvent('lscache_information_edit');
 		$this->model_extension_event->deleteEvent('lscache_information_delete');
-
         $this->model_extension_event->deleteEvent('lscache_checkout_confirm');
         $this->model_extension_event->deleteEvent('lscache_checkout_success');
         $this->model_extension_event->deleteEvent('lscache_cart_add');
@@ -344,7 +347,8 @@ class ControllerExtensionModuleLSCache extends Controller {
 		$this->model_extension_event->deleteEvent('lscache_user_logout');
 		$this->model_extension_event->deleteEvent('lscache_currency_change');
 		$this->model_extension_event->deleteEvent('lscache_language_change');
-                
+		$this->model_extension_event->deleteEvent('lscache_check_error');
+      
         $this->clearHtaccess();
         $lscInstance = $this->lscacheInit();
         if($lscInstance){
@@ -484,7 +488,7 @@ class ControllerExtensionModuleLSCache extends Controller {
 
         $this->load->model('extension/module/lscache');
         $setting = $this->model_extension_module_lscache->getItems();
-
+        
         // Server type
         if (!defined('LITESPEED_SERVER_TYPE')) {
             if (isset($_SERVER['HTTP_X_LSCACHE']) && $_SERVER['HTTP_X_LSCACHE']) {
@@ -497,14 +501,14 @@ class ControllerExtensionModuleLSCache extends Controller {
                 define('LITESPEED_SERVER_TYPE', 'NONE');
             }
         }
-        
+
         if (isset($setting['module_lscache_status']) && (!$setting['module_lscache_status']))  {
             return false;
         }
 
         // Checks if caching is allowed via server variable
         if (!empty($_SERVER['X-LSCACHE']) || LITESPEED_SERVER_TYPE === 'LITESPEED_SERVER_ADC' || defined('LITESPEED_CLI')) {
-            !defined('LITESPEED_ALLOWED') && define('LITESPEED_ALLOWED', true);
+            !defined('LITESPEED_ALLOWED') && define('LITESPEED_ALLOWED',true);
             include_once(DIR_SYSTEM . 'library/lscache/lscachebase.php');
             include_once(DIR_SYSTEM . 'library/lscache/lscachecore.php');
             $lscInstance = new LiteSpeedCacheCore();
@@ -525,8 +529,9 @@ class ControllerExtensionModuleLSCache extends Controller {
         $directives = '### LITESPEED_CACHE_START - Do not remove this line' . PHP_EOL;
         $directives .= '<IfModule LiteSpeed>' . PHP_EOL;
         $directives .= 'CacheLookup on' . PHP_EOL;
-        $directives .= '## Uncomment the following directives if you has a separate mobile view' . PHP_EOL;
         $directives .= '##RewriteEngine On' . PHP_EOL;
+
+        $directives .= '## Uncomment the following directives if you has a separate mobile view' . PHP_EOL;
         $directives .= '##RewriteCond %{HTTP_USER_AGENT} "iPhone|iPod|BlackBerry|Palm|Googlebot-Mobile|Mobile|mobile|mobi|Windows Mobile|Safari Mobile|Android|Opera Mini" [NC] ' . PHP_EOL;
         $directives .= '##RewriteRule .* - [E=Cache-Control:vary=isMobile]' . PHP_EOL;
 
@@ -536,12 +541,11 @@ class ControllerExtensionModuleLSCache extends Controller {
         $directives .= '##RewriteCond %{HTTP_USER_AGENT} !CriOS' . PHP_EOL;
         $directives .= '##RewriteRule .* - [E=Cache-Control:vary=isSafari]' . PHP_EOL;
 
-        $directives .= '##RewriteCond %{HTTP_USER_AGENT} "iPhone|iPod|BlackBerry|Palm|Googlebot-Mobile|Mobile|mobile|mobi|Windows Mobile|Safari Mobile|Android|Opera Mini" [NC]' . PHP_EOL;
-        $directives .= '##RewriteCond %{HTTP_USER_AGENT} Safari' . PHP_EOL;
-        $directives .= '##RewriteCond %{HTTP_USER_AGENT} !Chrome' . PHP_EOL;
-        $directives .= '##RewriteCond %{HTTP_USER_AGENT} !CriOS' . PHP_EOL;
-        $directives .= '##RewriteRule .* - [E=Cache-Control:vary=isMobileSafari]' . PHP_EOL;
-        
+        //avoid mobile bot never hit a cache copy because it do not store cookies
+        $directives .= '## Uncomment the following directives only if enabled GUI Option of Separate Cache Copy for Mobile Device, "yoursite.domain" need to be changed' . PHP_EOL;
+        $directives .= '##RewriteCond %{HTTP_USER_AGENT} "iPhone|iPod|BlackBerry|Palm|Googlebot-Mobile|Mobile|mobile|mobi|Windows Mobile|Safari Mobile|Android|Opera Mini" [NC] ' . PHP_EOL;
+        $directives .= '##RewriteCond %{HTTP_USER_AGENT} Bot' . PHP_EOL;
+        $directives .= '##RewriteRule .* - [CO=_lscache_vary:device\%3Amobile:yoursite.domain]' . PHP_EOL;
         $directives .= '</IfModule>' . PHP_EOL;
         $directives .= '### LITESPEED_CACHE_END';
 
@@ -621,6 +625,57 @@ class ControllerExtensionModuleLSCache extends Controller {
         return function_exists('curl_version');
     }
     
+
+    private function purgeUrls()
+    {
+        $url = $this->request->post['lscache_purge_url'];
+        if(empty($url) || empty(trim($url))){return;}
+        
+        $urls = explode("\n", str_replace(array("\r\n", "\r"), "\n", $url));
+
+        $success = 0;
+        $acceptCode = array(200, 201);
+
+        $domain = $_SERVER['SERVER_NAME'];
+        $host = $_SERVER['SERVER_ADDR'];
+        $header = ['Host: ' . $_SERVER['HTTP_HOST']];
+        $msg = [];
+
+        foreach ($urls as $key => $path) {
+
+            // Check that URL is in this domain
+            if (strpos($path, $domain) === FALSE) {
+                $msg[] = $path . ' - url not allowed';
+                continue;
+            }
+
+            $ch = curl_init();
+
+            // Replace domain with host, and set Header Host, to support Cloudflare or reverse proxies
+            $host_path = str_replace($domain, $host, $path);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+            curl_setopt($ch, CURLOPT_URL, $host_path);
+            curl_setopt($ch, CURLOPT_VERBOSE, true);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PURGE");
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+            $buffer = curl_exec($ch);
+            $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+            if (in_array($httpcode, $acceptCode)) {
+                $success++;
+            } else {
+                $msg[] = $path . ' - ' . ' purge failed' . $httpcode . curl_error($ch);
+            }
+            curl_close($ch);
+        }
+
+        $msg[] = $success . ' URL purged!';
+        return implode('<br>', $msg);
+    }
     
 }
 
