@@ -1,4 +1,3 @@
-
 <?php echo $header; ?><?php echo $column_left; ?>
 <div id="content">
   <div class="page-header">
@@ -43,6 +42,7 @@
           <ul class="nav nav-tabs">
             <li <?php echo $tabtool->check($tab, 'general', 'class'); ?>><a href="#tab-general" data-toggle="tab"><?php echo $tab_general ; ?></a></li>
             <li <?php echo $tabtool->check($tab, 'pages', 'class'); ?>><a href="#tab-pages" data-toggle="tab"><?php echo $tab_pages ; ?></a></li>
+            <li <?php echo $tabtool->check($tab, 'urls', 'class'); ?>><a href="#tab-urls" data-toggle="tab"><?php echo $tab_urls ; ?></a></li>
             <li <?php echo $tabtool->check($tab, 'modules', 'class'); ?>><a href="#tab-modules" data-toggle="tab"><?php echo $tab_modules ; ?></a></li>
           </ul>
           <div class="tab-content">
@@ -124,6 +124,26 @@
                     <textarea  name="module_lscache_recache_userAgent" placeholder="<?php echo $help_recache_userAgent  ; ?>" class="form-control" rows="3"><?php echo $module_lscache_recache_userAgent ; ?></textarea>
                   </div>
                 </div>
+
+                <div class="form-group">
+                  <label class="col-sm-2 control-label" for="module_lscache_refresh_expiration"><span data-toggle="tooltip" title="<?php echo $help_refresh_expiration ; ?>"><?php echo $entry_refresh_expiration ; ?></span></label>
+                  <div class="col-sm-10">
+                    <select name="module_lscache_refresh_expiration" class="form-control">
+                      <option value="0" <?php echo $selectDisable->check($module_lscache_refresh_expiration, '0')  ; ?>><?php echo $text_disabled  ; ?> </option>
+                      <option value="1" <?php echo $selectDisable->check($module_lscache_refresh_expiration, '1')  ; ?>><?php echo $text_enabled  ; ?> </option>
+                    </select>
+                  </div>
+                </div>
+                  
+                <div class="form-group">
+                  <label class="col-sm-2 control-label" for="module_lscache_purge_category"><span data-toggle="tooltip" title="<?php echo $help_purge_category ; ?>"><?php echo $entry_purge_category ; ?></label>
+                  <div class="col-sm-10">
+                    <select name="module_lscache_purge_category" class="form-control">
+                      <option value="1" <?php echo $selectEnable->check($module_lscache_purge_category, '1') ; ?>><?php echo $text_enabled ; ?></option>
+                      <option value="0" <?php echo $selectEnable->check($module_lscache_purge_category, '0') ; ?>><?php echo $text_disabled ; ?></option>
+                    </select>
+                  </div>
+                </div>                
                 
                 <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_ajax_wishlist"><?php echo $entry_ajax_wishlist ; ?></label>
@@ -155,6 +175,18 @@
                     </select>
                   </div>
                 </div>
+
+
+                <div class="form-group">
+                  <label class="col-sm-2 control-label" for="module_lscache_cache404"><?php echo $entry_lscache_cache404 ; ?></label>
+                  <div class="col-sm-10">
+                    <select name="module_lscache_cache404" class="form-control">
+                      <option value="1" <?php echo $selectDisable->check($module_lscache_cache404, '1') ; ?>><?php echo $text_enabled ; ?></option>
+                      <option value="0" <?php echo $selectDisable->check($module_lscache_cache404, '0') ; ?>><?php echo $text_disabled ; ?></option>
+                    </select>
+                  </div>
+                </div>
+                                      
                 
                 <div class="form-group">
                   <label class="col-sm-2 control-label" for="module_lscache_log_level"><?php echo $entry_loglevel ; ?></label>
@@ -225,6 +257,41 @@
                     </table>
 
                 </div>
+            </div>
+
+
+            <div class="tab-pane <?php echo $tabtool->check($tab, 'urls'); ?>" id="tab-urls">
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label" for="module_lscache_include_urls"><span data-toggle="tooltip" title="<?php echo $help_include_urls ; ?>"><?php echo $entry_include_urls ; ?></span></label>
+                  <div class="col-sm-10">
+                    <textarea  name="module_lscache_include_urls" placeholder="<?php echo $hint_include_urls ; ?>" class="form-control" rows="3"><?php echo $module_lscache_include_urls ; ?></textarea>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label" for="module_lscache_exclude_login_urls"><span data-toggle="tooltip" title="<?php echo $help_exclude_login_urls ; ?>"><?php echo $entry_exclude_login_urls ; ?></span></label>
+                  <div class="col-sm-10">
+                    <textarea  name="module_lscache_exclude_login_urls" placeholder="<?php echo $hint_exclude_login_urls ; ?>" class="form-control" rows="3"><?php echo $module_lscache_exclude_login_urls ; ?></textarea>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label" for="module_lscache_exclude_urls"><span data-toggle="tooltip" title="<?php echo $help_exclude_urls ; ?>"><?php echo $entry_exclude_urls ; ?></span></label>
+                  <div class="col-sm-10">
+                    <textarea  name="module_lscache_exclude_urls" placeholder="<?php echo $hint_exclude_urls ; ?>" class="form-control" rows="3"><?php echo $module_lscache_exclude_urls ; ?></textarea>
+                  </div>
+                </div>
+                  
+                <div class="form-group">
+                  <label class="col-sm-2 control-label" for="module_lscache_purge_url">
+                      <button type="submit" name='purgeURL' form="form-lscache-module" data-toggle="tooltip" class="btn btn-warning"><i class="fa fa-trash"> &nbsp; <?php echo $entry_purge_urls ; ?></i></button>
+                  </label>
+                  <div class="col-sm-10">
+                    <textarea  name="lscache_purge_url" placeholder="<?php echo $hint_purge_urls ; ?>" class="form-control" rows="3"><?php echo $lscache_purge_urls ; ?></textarea>
+                  </div>
+                </div>
+                
             </div>
 
             <div class="tab-pane <?php echo $tabtool->check($tab, 'modules'); ?>" id="tab-modules">
