@@ -1058,6 +1058,7 @@ class ControllerExtensionModuleLSCache extends Controller
         curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 20);
         
         if(!empty($cookie)){
             curl_setopt($ch, CURLOPT_COOKIE, $cookie);
