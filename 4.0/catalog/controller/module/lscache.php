@@ -937,7 +937,7 @@ class Lscache extends \Opencart\System\Engine\Controller {
             }
         } else {
             If ( $this->config->get('config_language' )) { 
-                $cookies_lang = $this->config->get('config_language' );
+                $cookies_lang[] = $this->config->get('config_language' );
             }
         }
 
