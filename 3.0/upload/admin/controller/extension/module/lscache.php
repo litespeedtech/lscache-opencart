@@ -203,6 +203,7 @@ class ControllerExtensionModuleLSCache extends Controller {
         $data['addESIModule'] = $currentLink . '&tab=modules&action=addESIModule';
         $data['addESIRoute'] = $currentLink . '&tab=modules&action=addESIRoute';
         $data['deleteESI'] = $currentLink . '&tab=modules&action=deleteESI';
+        $data['lscacheFeatures'] = $_SERVER['X-LSCACHE'];
         
         $this->document->setTitle($this->language->get('heading_title'));
         $this->document->addScript('view/javascript//bootstrap-toggle.min.js');
