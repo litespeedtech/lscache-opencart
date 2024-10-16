@@ -28,7 +28,7 @@ $_['text_exclude_route'] = 'The new setting is in exclude route list';
 $_['text_recache_default'] = 'Rebuild cache for only default language and default currency';
 $_['text_recache_language'] = 'Rebuild cache for all languages and only default currency';
 $_['text_recache_currency'] = 'Rebuild cache for all currencies and only default language';
-$_['text_recache_combination'] = 'Rebuild cache for all language and currency cobinations';
+$_['text_recache_combination'] = 'Rebuild cache for all language and currency combinations';
 $_['text_commentHtaccess'] = 'Please comment/uncomment related .htaccess directives inside &lt;IfModule LiteSpeed&gt;';
 
 
