@@ -282,7 +282,7 @@ class Lscache extends \Opencart\System\Engine\Controller {
         $this->addEvent('lscache_user_login','', 'catalog/controller/account/login.validate/after', 'extension/litespeed/module/lscache.onUserAfterLogin');
         $this->addEvent('lscache_user_logout','', 'catalog/model/account/customer.deleteLoginAttempts/after', 'extension/litespeed/module/lscache.onUserAfterLogout');
         $this->addEvent('lscache_currency_change','', 'catalog/controller/common/currency.save/before', 'extension/litespeed/module/lscache.editCurrency');
-        $this->addEvent('lscache_language_change','', 'catalog/controller/common/language/language/before', 'extension/litespeed/module/lscache.editLanguage');
+        $this->addEvent('lscache_language_change','', 'catalog/controller/common/language.save/before', 'extension/litespeed/module/lscache.editLanguage');
         $this->addEvent('lscache_check_error','', 'catalog/view/error/*/before', 'extension/litespeed/module/lscache.checkError');
 
         $this->model_extension_litespeed_module_lscache->installLSCache();
