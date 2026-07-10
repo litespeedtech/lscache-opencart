@@ -193,7 +193,11 @@ class Lscache extends \Opencart\System\Engine\Controller {
         $module = $esiModules[$esiKey];
         $esiType = $module['esi_type'];
 
-        $link = $this->url->link('extension/litespeed/module/lscache.renderESI', 'language=' . $this->config->get('config_language'));
+        // OC4's url->link() HTML-encodes '&' to '&amp;', which breaks the query string of the
+        // ESI include URL (language= becomes amp;language=), so renderESI loses the language and
+        // falls back to the store default. Decode the ampersands so LiteSpeed fetches the ESI
+        // sub-request with the correct language.
+        $link = str_replace('&amp;', '&', $this->url->link('extension/litespeed/module/lscache.renderESI', 'language=' . $this->config->get('config_language')));
         $link .= '&esiRoute=' . $route;
         if (isset($module['module']) && ($module['name'] != $module['module'])) {
             $link .= '&module_id=' . $module['module'];
@@ -417,8 +421,12 @@ class Lscache extends \Opencart\System\Engine\Controller {
             $vary['currency'] = $this->session->data['currency'];
         }
 
-        if ((isset($this->session->data['language'])) && ($this->session->data['language'] != $this->config->get('config_language'))) {
-            $vary['language'] = $this->session->data['language'];
+        // OC4: startup/language resolves the requested language into config_language on every request,
+        // while config_language_catalog stays the store default. Vary by the current language whenever
+        // it differs from the store default (OC4 has no session/cookie language like OC3 did).
+        $default_language = $this->config->get('config_language_catalog');
+        if ($default_language && ($this->config->get('config_language') != $default_language)) {
+            $vary['language'] = $this->config->get('config_language');
         }
 
         if ($this->customer->isLogged() && isset($this->lscache->setting['module_lscache_vary_login']) && ($this->lscache->setting['module_lscache_vary_login'] == '1')) {
