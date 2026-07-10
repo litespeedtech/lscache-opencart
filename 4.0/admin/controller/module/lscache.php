@@ -224,10 +224,18 @@ class Lscache extends \Opencart\System\Engine\Controller {
 
     public function purgeAllButton($route, &$args, &$output) {
         if ($this->user && $this->user->hasPermission('modify', 'extension/litespeed/module/lscache')) {
-            $this->load->language('extension/litespeed/module/lscache');
-            $button = '<li><a href="' . $this->url->link('extension/litespeed/module/lscache', 'user_token=' . $this->session->data['user_token'], true) . '&action=purgeAllButton' . '" data-toggle="tooltip" title="" class="btn" data-original-title="' . $this->language->get('button_purgeAll') . '"><i class="fa fa-trash"></i><span class="hidden-xs hidden-sm hidden-md"> Purge All LiteSpeed Cache</span></a></li>';
-            $search = '<ul class="nav navbar-nav navbar-right">';
-            $output = str_replace($search, $search . $button, $output);
+            $href = $this->url->link('extension/litespeed/module/lscache', 'user_token=' . $this->session->data['user_token'] . '&action=purgeAllButton', true);
+            // Fixed literal instead of $this->load->language(): loading the module language file here
+            // would overwrite the current page's heading_title (it defines heading_title = 'LiteSpeed
+            // Cache'), which showed up as the Dashboard heading.
+            $title = 'Purge All LiteSpeed Cache';
+            // OC4 admin header is Bootstrap 5 (the old OC3 ".navbar-nav.navbar-right" markup no longer
+            // exists). Drop the LiteSpeed Cache logo (inlined SVG, no external request) into the top bar
+            // right before the notification bell; the tooltip is auto-initialised by admin common.js.
+            $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="-75 -75 300 300" style="display:block"><path fill="#67777F" d="M12.3-1.939h48.429l17.229-32.682H-24.657c-5.492,0-9.963,4.44-9.963,9.932v199.379 c0,5.46,4.472,9.932,9.963,9.932h42.019l19.038-37.021H12.3c-6.085,0-11.016-4.933-11.016-10.983V9.11 C1.284,3.06,6.215-1.939,12.3-1.939z M12.3,157.206h8.359l-9.16,17.811h-36.157c-0.193,0-0.358-0.18-0.358-0.327V-24.689 c0-0.177,0.164-0.327,0.358-0.327h86.695l-7.103,13.472H12.3C0.93-11.544-8.321-2.279-8.321,9.11v127.507 C-8.321,147.97,0.93,157.206,12.3,157.206z"></path><path fill="#67777F" d="M174.657-34.622h-35.542c-0.168,0.527-0.361,0.988-0.593,1.449l-16.47,31.233h17.786 c6.05,0,11.014,5,11.014,11.049v127.507c0,6.051-4.964,10.983-11.014,10.983H97.982l-19.334,37.021h96.009 c5.491,0,9.963-4.472,9.963-9.932V-24.689C184.62-30.181,180.148-34.622,174.657-34.622z M175.015,174.689 c0,0.147-0.165,0.327-0.357,0.327H94.501l9.302-17.811h36.036c11.369,0,20.618-9.236,20.618-20.589V9.11 c0-11.389-9.249-20.654-20.618-20.654h-1.863l7.104-13.472h29.577c0.193,0,0.357,0.15,0.357,0.327V174.689z"></path><polygon fill="#FF7E33" points="30.844,184.621 71.349,105.447 105.608,105.447 65.069,184.621 "></polygon><path fill="#FF7E33" d="M35.808,94.137c-0.23-0.067-0.492-0.129-0.789-0.129h-2.991c-2.533-0.462-4.636-2.896-4.636-5.824 l1.775-4.272L91.572-34.622H125.7l-51.688,98.18c-0.461,0.855-0.425,1.906,0.066,2.761c0.528,0.855,1.447,1.347,2.435,1.347h38.634 c4.928,0.363,7.264,2.93,7.264,5.922l-0.788,2.792l-9.272,17.756H73.423H35.808z"></path></svg>';
+            $button = '<li id="nav-lscache" class="nav-item d-flex align-items-center"><a href="' . $href . '" class="nav-link d-flex align-items-center py-0" data-bs-toggle="tooltip" data-bs-placement="bottom" title="' . $title . '">' . $svg . '</a></li>';
+            $search = '<li id="nav-notification"';
+            $output = str_replace($search, $button . $search, $output);
         }
     }
 
