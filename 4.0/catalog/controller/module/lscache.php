@@ -383,6 +383,54 @@ class Lscache extends \Opencart\System\Engine\Controller {
         $this->event->unregister('controller/*/before', 'extension/litespeed/module/lscache/onAfterInitialize');
     }
 
+    /*
+     * Physically delete cache files from disk. This is an unauthenticated endpoint (usable from cron or
+     * an external integration), so it is gated by a per-install API key compared in constant time. Pass
+     * the key in the "X-LSCache-Key" header (preferred, keeps it out of access logs) or as ?key=.
+     * Returns JSON. Honours the same settings as the admin UI: it does nothing unless physical deletion
+     * is enabled, and deletes files older than the configured lifetime (0 = all).
+     */
+    public function apiCleanup() {
+        $this->load->model('extension/litespeed/module/lscache');
+        $settings = $this->model_extension_litespeed_module_lscache->getItems();
+
+        $expected = isset($settings['module_lscache_api_key']) ? (string)$settings['module_lscache_api_key'] : '';
+        $provided = '';
+        if (isset($_SERVER['HTTP_X_LSCACHE_KEY'])) {
+            $provided = (string)$_SERVER['HTTP_X_LSCACHE_KEY'];
+        } else if (isset($this->request->get['key'])) {
+            $provided = (string)$this->request->get['key'];
+        }
+
+        $this->response->addHeader('Content-Type: application/json');
+
+        if ($expected === '' || $provided === '' || !hash_equals($expected, $provided)) {
+            http_response_code(403);
+            $this->response->setOutput(json_encode(array('error' => 'forbidden')));
+            return;
+        }
+
+        if (empty($settings['module_lscache_file_delete'])) {
+            $this->response->setOutput(json_encode(array('status' => 'disabled')));
+            return;
+        }
+
+        require_once(DIR_EXTENSION . 'litespeed/system/library/lscache/lscachefiles.php');
+        $configured = isset($settings['module_lscache_cache_dir']) ? $settings['module_lscache_cache_dir'] : '';
+        $docRoot = isset($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] : '';
+        $root = \LiteSpeedCacheFiles::resolve($configured, $docRoot);
+        if ($root === '') {
+            $this->response->setOutput(json_encode(array('error' => 'cache-dir-not-found')));
+            return;
+        }
+
+        $days = isset($settings['module_lscache_file_days']) ? (int)$settings['module_lscache_file_days'] : 0;
+        $result = \LiteSpeedCacheFiles::purge($root, $days);
+        $result['status'] = 'ok';
+        $result['days'] = $days;
+        $this->response->setOutput(json_encode($result));
+    }
+
     public function onAfterGetModule($route, &$args) {
         //$output['module_id'] = $args[0];
     }

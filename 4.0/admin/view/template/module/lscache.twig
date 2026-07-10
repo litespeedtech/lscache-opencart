@@ -46,9 +46,14 @@
             <li class="nav-item"><a class="nav-link {{tabtool.check(tab, 'pages')}}" href="#tab-pages" data-bs-toggle="tab">{{ tab_pages }}</a></li>
             <li class="nav-item"><a class="nav-link {{tabtool.check(tab, 'urls')}}" href="#tab-urls" data-bs-toggle="tab">{{ tab_urls }}</a></li>
             <li class="nav-item"><a class="nav-link {{tabtool.check(tab, 'modules')}}" href="#tab-modules" data-bs-toggle="tab">{{ tab_modules }}</a></li>
+            <li class="nav-item"><a class="nav-link {{tabtool.check(tab, 'files')}}" href="#tab-files" data-bs-toggle="tab">{{ tab_files }}</a></li>
           </ul>
           <div class="tab-content">
             <div class="tab-pane {{tabtool.check(tab,'general')}}" id="tab-general">
+                <div class="alert alert-info d-flex align-items-center">
+                  <i class="fa fa-hdd fa-lg me-2"></i>
+                  <span>{{ text_files_storage }}:&nbsp; <strong>{{ lscache_file_count }}</strong> {{ text_files_files }},&nbsp; <strong>{{ lscache_file_size }}</strong>{% if lscache_dir %}&nbsp; &mdash; <code>{{ lscache_dir }}</code>{% else %}&nbsp; &mdash; {{ text_files_no_dir }}{% endif %}</span>
+                </div>
                 <div class="row mb3">
                   <label class="col-sm-2 col-form-label" for="module_lscache_status">{{ entry_status }}</label>
                   <div class="col-sm-10">
@@ -402,7 +407,73 @@
                     </table>
                 </div>
             </div>
-                    
+
+            <div class="tab-pane {{tabtool.check(tab, 'files')}}" id="tab-files">
+                <div class="alert alert-warning"><i class="fa fa-triangle-exclamation"></i> {{ help_files_intro }}</div>
+
+                <div class="row mb3">
+                  <label class="col-sm-2 col-form-label" for="module_lscache_cache_dir"><span data-toggle="tooltip" title="{{ help_files_dir }}">{{ entry_files_dir }}</span></label>
+                  <div class="col-sm-10">
+                    <div class="input-group">
+                      <input type="text" name="module_lscache_cache_dir" value="{{ module_lscache_cache_dir }}" placeholder="{{ text_files_autodetect }}" class="form-control" />
+                      <a href="{{ self }}&action=verifyCacheDir&tab=files" class="btn btn-outline-secondary">{{ button_files_verify }}</a>
+                    </div>
+                    <div class="form-text">{{ text_files_current }}: <code>{% if lscache_dir %}{{ lscache_dir }}{% else %}{{ text_files_no_dir }}{% endif %}</code> &mdash; {{ lscache_file_count }} / {{ lscache_file_size }}</div>
+                  </div>
+                </div>
+
+                <div class="row mb3">
+                  <label class="col-sm-2 col-form-label" for="module_lscache_file_delete">{{ entry_files_delete }}</label>
+                  <div class="col-sm-10">
+                    <select name="module_lscache_file_delete" class="form-select" style="max-width:200px">
+                      <option value="1" {{ selectDisable.check(module_lscache_file_delete, '1') }}>{{ text_enabled }}</option>
+                      <option value="0" {{ selectDisable.check(module_lscache_file_delete, '0') }}>{{ text_disabled }}</option>
+                    </select>
+                    <div class="form-text">{{ help_files_delete }}</div>
+                  </div>
+                </div>
+
+                <div class="row mb3">
+                  <label class="col-sm-2 col-form-label" for="module_lscache_file_days"><span data-toggle="tooltip" title="{{ help_files_days }}">{{ entry_files_days }}</span></label>
+                  <div class="col-sm-10">
+                    <input type="number" min="0" name="module_lscache_file_days" value="{{ module_lscache_file_days }}" class="form-control" style="max-width:140px" />
+                    <div class="form-text">{{ help_files_days }}</div>
+                  </div>
+                </div>
+
+                <div class="row mb3">
+                  <div class="col-sm-2 col-form-label">&nbsp;</div>
+                  <div class="col-sm-10">
+                    <a href="{{ self }}&action=purgeCacheFiles&tab=files" class="btn btn-danger" onclick="return confirm('{{ text_files_confirm }}');"><i class="fa fa-trash"></i> {{ button_files_purge }}</a>
+                  </div>
+                </div>
+
+                <hr>
+
+                <div class="row mb3">
+                  <label class="col-sm-2 col-form-label"><span data-toggle="tooltip" title="{{ help_files_apikey }}">{{ entry_files_apikey }}</span></label>
+                  <div class="col-sm-10">
+                    <div class="input-group" style="max-width:520px">
+                      <input type="text" name="module_lscache_api_key" value="{{ module_lscache_api_key }}" class="form-control" readonly />
+                      <a href="{{ self }}&action=regenerateApiKey&tab=files" class="btn btn-outline-secondary" onclick="return confirm('{{ text_files_apikey_confirm }}');">{{ button_files_regenerate }}</a>
+                    </div>
+                    <div class="form-text">{{ help_files_apikey }}</div>
+                  </div>
+                </div>
+
+                <div class="row mb3">
+                  <label class="col-sm-2 col-form-label" for="module_lscache_cron_time"><span data-toggle="tooltip" title="{{ help_files_cron }}">{{ entry_files_cron_time }}</span></label>
+                  <div class="col-sm-10">
+                    <div class="input-group" style="max-width:420px">
+                      <input type="text" name="module_lscache_cron_time" value="{{ module_lscache_cron_time }}" placeholder="03:00" class="form-control" />
+                      <a href="{{ self }}&action=installCron&tab=files" class="btn btn-outline-success">{{ button_files_cron_install }}</a>
+                      <a href="{{ self }}&action=removeCron&tab=files" class="btn btn-outline-danger">{{ button_files_cron_remove }}</a>
+                    </div>
+                    <div class="form-text">{{ help_files_cron_note }}</div>
+                  </div>
+                </div>
+            </div>
+
           </div>
         </form>
       </div>

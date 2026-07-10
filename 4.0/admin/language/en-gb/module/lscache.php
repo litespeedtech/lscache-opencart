@@ -108,3 +108,41 @@ $_['esi_public']     = 'ESI with public cache';
 $_['esi_private']    = 'ESI with private cache';
 $_['esi_none']       = 'ESI without cache';
 $_['esi_disabled'] = 'ESI Disabled';
+
+// Cache Files tab (physical cache-file housekeeping)
+$_['tab_files']                 = 'Cache Files';
+$_['text_files_storage']        = 'Cache storage on disk';
+$_['text_files_files']          = 'file(s)';
+$_['text_files_no_dir']         = 'Cache directory not found or empty';
+$_['text_files_autodetect']     = 'Leave empty to auto-detect';
+$_['text_files_current']        = 'Detected';
+$_['text_files_confirm']        = 'Physically delete ALL cache files from disk now?';
+$_['text_files_apikey_confirm'] = 'Generate a new API key? The old key will stop working (update any cron/integration).';
+$_['text_files_purged']         = 'Cache purged.';
+$_['text_files_deleted']        = 'Physically deleted %d cache file(s) from disk.';
+$_['text_files_verify']         = 'Cache directory: %s &mdash; %d file(s), %s.';
+$_['text_apikey_regenerated']   = 'A new API key has been generated.';
+$_['text_cron_installed']       = 'Cron job installed for the web user.';
+$_['text_cron_removed']         = 'Cron job removed.';
+$_['text_cron_manual']          = 'Could not edit the crontab automatically. Add this line manually:<br><code>%s</code>';
+$_['text_cron_manual_remove']   = 'Could not edit the crontab automatically. Remove the "lscache-cleanup" line manually.';
+
+$_['entry_files_dir']           = 'Cache directory';
+$_['entry_files_delete']        = 'Physically delete cache files';
+$_['entry_files_days']          = 'Cache file lifetime (days)';
+$_['entry_files_apikey']        = 'API key';
+$_['entry_files_cron_time']     = 'Cleanup time (HH:MM)';
+
+$_['help_files_intro']          = 'The LiteSpeed purge API only marks cache entries stale; it never removes the files from disk. These tools physically delete the cache files.';
+$_['help_files_dir']            = 'Absolute path to the LiteSpeed cache store. Auto-detected when empty; override if your cacheStorePath is elsewhere.';
+$_['help_files_delete']         = 'When enabled, "Purge All" also wipes the cache files, and old files are cleaned automatically.';
+$_['help_files_days']           = 'Auto-cleanup (on admin visits, once a day) deletes cache files older than this many days. 0 disables the age-based cleanup.';
+$_['help_files_apikey']         = 'Used to authorise the unauthenticated cleanup endpoint. Send it as the "X-LSCache-Key" request header.';
+$_['help_files_cron']           = 'Server time the cron cleanup should run.';
+$_['help_files_cron_note']      = 'Installs into the web user crontab. If that is not permitted, the exact command to paste is shown instead.';
+
+$_['button_files_verify']       = 'Verify';
+$_['button_files_purge']        = 'Delete all cache files now';
+$_['button_files_regenerate']   = 'Regenerate';
+$_['button_files_cron_install'] = 'Install cron';
+$_['button_files_cron_remove']  = 'Remove cron';

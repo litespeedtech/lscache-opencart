@@ -105,14 +105,30 @@ class Lscache extends \Opencart\System\Engine\Controller {
         } else if (($action == 'purgeAll') && $lscInstance) {
             $lscInstance->purgeAllPublic();
             $this->log($lscInstance->getLogBuffer());
-            $data['success'] = $this->language->get('text_purgeSuccess');
+            $data['success'] = $this->language->get('text_purgeSuccess') . $this->purgeCacheFiles(0);
         } else if (($action == 'purgeAllButton') && $lscInstance) {
             $lscInstance->purgeAllPublic();
             $this->log($lscInstance->getLogBuffer());
+            $this->purgeCacheFiles(0);
             if (isset($_SERVER['HTTP_REFERER'])) {
                 $this->response->redirect($_SERVER['HTTP_REFERER']);
                 return;
             }
+        } else if ($action == 'verifyCacheDir') {
+            $data['success'] = $this->verifyCacheFiles();
+            $data["tab"] = "files";
+        } else if ($action == 'purgeCacheFiles') {
+            $data['success'] = $this->language->get('text_files_purged') . $this->purgeCacheFiles(0);
+            $data["tab"] = "files";
+        } else if ($action == 'regenerateApiKey') {
+            $data['success'] = $this->regenerateApiKey();
+            $data["tab"] = "files";
+        } else if ($action == 'installCron') {
+            $data['success'] = $this->manageCron(true);
+            $data["tab"] = "files";
+        } else if ($action == 'removeCron') {
+            $data['success'] = $this->manageCron(false);
+            $data["tab"] = "files";
         } else if (($action == 'deletePage') && isset($this->request->get['key'])) {
             $key = $this->request->get['key'];
             $this->model_extension_litespeed_module_lscache->deleteSettingItem('module_lscache', $key);
@@ -162,6 +178,19 @@ class Lscache extends \Opencart\System\Engine\Controller {
         $data['modules'] = $this->model_extension_litespeed_module_lscache->getModules();
         $items = $this->model_extension_litespeed_module_lscache->getItems();
         $data = array_merge($data, $items);
+
+        // Cache-file storage info for the General tab (path / file count / total size on disk).
+        $fileRoot = $this->cacheFilesRoot($items);
+        if ($fileRoot !== '') {
+            $fileStats = \LiteSpeedCacheFiles::stats($fileRoot);
+            $data['lscache_dir'] = $fileRoot;
+            $data['lscache_file_count'] = (int)$fileStats['count'];
+            $data['lscache_file_size'] = \LiteSpeedCacheFiles::humanBytes($fileStats['bytes']);
+        } else {
+            $data['lscache_dir'] = '';
+            $data['lscache_file_count'] = 0;
+            $data['lscache_file_size'] = \LiteSpeedCacheFiles::humanBytes(0);
+        }
 
         $data['tabtool'] = new Tool('active', 'general');
         $data['selectEnable'] = new Tool('selected', '1');
@@ -223,6 +252,8 @@ class Lscache extends \Opencart\System\Engine\Controller {
     }
 
     public function purgeAllButton($route, &$args, &$output) {
+        // Fires on every admin page (common/header/after) - piggyback the throttled age-based cleanup here.
+        $this->maybeAutoCleanFiles();
         if ($this->user && $this->user->hasPermission('modify', 'extension/litespeed/module/lscache')) {
             $href = $this->url->link('extension/litespeed/module/lscache', 'user_token=' . $this->session->data['user_token'] . '&action=purgeAllButton', true);
             // Fixed literal instead of $this->load->language(): loading the module language file here
@@ -237,6 +268,136 @@ class Lscache extends \Opencart\System\Engine\Controller {
             $search = '<li id="nav-notification"';
             $output = str_replace($search, $button . $search, $output);
         }
+    }
+
+    /* ----- Physical cache-file housekeeping (the LiteSpeed purge API never removes files) ----- */
+
+    // The cache lives relative to the CATALOG webroot, not the admin dir.
+    private function catalogWebroot() {
+        if (defined('DIR_CATALOG')) {
+            return dirname(rtrim(DIR_CATALOG, '/\\'));
+        }
+        return isset($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] : '';
+    }
+
+    // Resolve + validate the cache directory (auto-detect, or the configured override). '' if not found.
+    private function cacheFilesRoot($settings) {
+        require_once(DIR_EXTENSION . 'litespeed/system/library/lscache/lscachefiles.php');
+        $configured = isset($settings['module_lscache_cache_dir']) ? $settings['module_lscache_cache_dir'] : '';
+        return \LiteSpeedCacheFiles::resolve($configured, $this->catalogWebroot());
+    }
+
+    // Physically delete cache files if the feature is enabled. $days = 0 => all. Returns an HTML fragment.
+    private function purgeCacheFiles($days) {
+        $settings = $this->model_extension_litespeed_module_lscache->getItems();
+        if (empty($settings['module_lscache_file_delete'])) {
+            return '';
+        }
+        $root = $this->cacheFilesRoot($settings);
+        if ($root === '') {
+            return '<br><i class="fa fa-exclamation-triangle"></i> ' . $this->language->get('text_files_no_dir');
+        }
+        $result = \LiteSpeedCacheFiles::purge($root, (int)$days);
+        return '<br><i class="fa fa-trash"></i> ' . sprintf($this->language->get('text_files_deleted'), (int)$result['deleted']);
+    }
+
+    // Once-a-day, age-based cleanup triggered on admin visits (no cron needed).
+    private function maybeAutoCleanFiles() {
+        $this->load->model('extension/litespeed/module/lscache');
+        $settings = $this->model_extension_litespeed_module_lscache->getItems();
+        if (empty($settings['module_lscache_file_delete'])) {
+            return;
+        }
+        $days = isset($settings['module_lscache_file_days']) ? (int)$settings['module_lscache_file_days'] : 0;
+        if ($days <= 0) {
+            return; // auto cleanup is age-based only; a full wipe must be explicit
+        }
+        $marker = (defined('DIR_CACHE') ? DIR_CACHE : sys_get_temp_dir() . '/') . 'lscache_lastclean';
+        if (is_file($marker) && (time() - filemtime($marker) < 86400)) {
+            return;
+        }
+        @touch($marker); // stamp first so concurrent requests do not double-run
+        $root = $this->cacheFilesRoot($settings);
+        if ($root !== '') {
+            \LiteSpeedCacheFiles::purge($root, $days);
+        }
+    }
+
+    // "Verify" button: report the resolved path, file count and total size.
+    private function verifyCacheFiles() {
+        $settings = $this->model_extension_litespeed_module_lscache->getItems();
+        $root = $this->cacheFilesRoot($settings);
+        if ($root === '') {
+            return '<i class="fa fa-exclamation-triangle"></i> ' . $this->language->get('text_files_no_dir');
+        }
+        $stats = \LiteSpeedCacheFiles::stats($root);
+        return sprintf($this->language->get('text_files_verify'), $root, (int)$stats['count'], \LiteSpeedCacheFiles::humanBytes($stats['bytes']));
+    }
+
+    private function regenerateApiKey() {
+        $key = function_exists('random_bytes') ? bin2hex(random_bytes(20)) : sha1(uniqid('lscache', true));
+        $this->model_extension_litespeed_module_lscache->setSettingItem('module_lscache', 'module_lscache_api_key', $key);
+        return $this->language->get('text_apikey_regenerated');
+    }
+
+    // Build the cron command that calls the API-key-gated cleanup endpoint.
+    private function cronLine($settings) {
+        $time = isset($settings['module_lscache_cron_time']) ? trim($settings['module_lscache_cron_time']) : '03:00';
+        if (preg_match('/^(\d{1,2}):(\d{2})$/', $time, $m)) {
+            $hour = max(0, min(23, (int)$m[1]));
+            $min = max(0, min(59, (int)$m[2]));
+        } else {
+            $hour = 3;
+            $min = 0;
+        }
+        $key = isset($settings['module_lscache_api_key']) ? $settings['module_lscache_api_key'] : '';
+        $base = defined('HTTPS_CATALOG') ? HTTPS_CATALOG : HTTP_CATALOG;
+        $url = rtrim($base, '/') . '/index.php?route=extension/litespeed/module/lscache.apiCleanup';
+        return sprintf('%d %d * * * curl -s -H "X-LSCache-Key: %s" "%s" >/dev/null 2>&1 # lscache-cleanup', $min, $hour, $key, $url);
+    }
+
+    // Install/remove the cleanup cron in the web user's crontab. Falls back to showing the line to paste.
+    private function manageCron($install) {
+        $settings = $this->model_extension_litespeed_module_lscache->getItems();
+        $line = $this->cronLine($settings);
+        $manual = sprintf($this->language->get('text_cron_manual'), htmlspecialchars($line));
+
+        if (!function_exists('exec') || !function_exists('proc_open')) {
+            return $manual;
+        }
+        $current = array();
+        @exec('crontab -l 2>/dev/null', $current);
+        $kept = array();
+        foreach ($current as $l) {
+            if (strpos($l, 'lscache-cleanup') === false) {
+                $kept[] = $l;
+            }
+        }
+        if ($install) {
+            $kept[] = $line;
+        }
+        $content = trim(implode("\n", $kept));
+        $content = ($content === '') ? '' : $content . "\n";
+
+        if ($this->writeCrontab($content)) {
+            return $install ? $this->language->get('text_cron_installed') : $this->language->get('text_cron_removed');
+        }
+        return $install ? $manual : $this->language->get('text_cron_manual_remove');
+    }
+
+    private function writeCrontab($content) {
+        $spec = array(0 => array('pipe', 'r'), 1 => array('pipe', 'w'), 2 => array('pipe', 'w'));
+        $proc = @proc_open('crontab -', $spec, $pipes);
+        if (!is_resource($proc)) {
+            return false;
+        }
+        fwrite($pipes[0], $content);
+        fclose($pipes[0]);
+        stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+        stream_get_contents($pipes[2]);
+        fclose($pipes[2]);
+        return proc_close($proc) === 0;
     }
 
     private function addEvent($code, $description, $trigger, $action) {
