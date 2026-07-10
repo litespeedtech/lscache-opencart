@@ -110,6 +110,14 @@ class Lscache extends \Opencart\System\Engine\Model {
 			return null;
 		}
 	}
+
+	// Upsert a single non-serialized setting item (used e.g. to regenerate the API key without
+	// rewriting the whole form).
+	public function setSettingItem($code, $key, $value, $store_id = 0) {
+		$this->db->query("DELETE FROM " . DB_PREFIX . "setting WHERE store_id = '" . (int)$store_id . "' AND `code` = '" . $this->db->escape($code) . "' AND `key` = '" . $this->db->escape($key) . "'");
+		$this->db->query("INSERT INTO " . DB_PREFIX . "setting SET store_id = '" . (int)$store_id . "', `code` = '" . $this->db->escape($code) . "', `key` = '" . $this->db->escape($key) . "', `value` = '" . $this->db->escape($value) . "', serialized = '0'");
+		$this->cache->delete('lscache_itemes');
+	}
     
 	public function getESIExtensionOptions($store_id = 0){
 		$query = $this->db->query("SELECT code FROM " . DB_PREFIX . "extension WHERE `type`='module' and `code`!='lscache' and `code` not in (select code from " . DB_PREFIX . "module) and concat('esl_extension_module_',`code`) not in (select `key` from "  . DB_PREFIX . "setting where store_id = '" . (int)$store_id . "' and `code`='module_lscache')");
@@ -262,6 +270,14 @@ class Lscache extends \Opencart\System\Engine\Model {
         $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'module_lscache_vary_safari', '0', '0')") ;
 	$this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'module_lscache_purge_category', '0', '0')") ;
 	$this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'module_lscache_cache404', '0', '0')") ;
+
+        // Physical cache-file housekeeping (deletes files on disk, which the LiteSpeed purge API does not).
+        $apiKey = function_exists('random_bytes') ? bin2hex(random_bytes(20)) : sha1(uniqid('lscache', true));
+        $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'module_lscache_cache_dir', '', '0')") ;
+        $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'module_lscache_file_delete', '0', '0')") ;
+        $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'module_lscache_file_days', '7', '0')") ;
+        $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'module_lscache_cron_time', '03:00', '0')") ;
+        $this->db->query(" insert into " . DB_PREFIX . "setting (store_id, code, `key`, value, serialized) values ('0', 'module_lscache', 'module_lscache_api_key', '" . $this->db->escape($apiKey) . "', '0')") ;
 
 
         $this->cache->delete('lscache_pages');
